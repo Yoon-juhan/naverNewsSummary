@@ -1,31 +1,28 @@
-import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup            
+from selenium import webdriver           
+import time                              
 
-category = "103"
-date = "2000:00:00"
-page_num = "1"
+browser = webdriver.Chrome()
 
-url = "https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1=" + category + "#&date=%" + date + "&page=" + page_num
+url_list = []
+for category in range(6):
+    for page in range(1, 6):
+        url = f'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1={100 + category}#&date=%2000:00:00&page={page}'
+        browser.get(url)
 
-# 접근정보
-headers = {'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"}
+        time.sleep(1)
 
+        soup = BeautifulSoup(browser.page_source, "html.parser")
+        a_list = soup.select(".type06_headline dt+dt a")
+        a_list.extend(soup.select(".type06 dt+dt a"))
 
-news = requests.get(url, headers=headers)   # url에 해당하는 html 코드를 가져옴
+        
+        for a in a_list:
+            if "href" in a.attrs:
+                if ("article" in a["href"]) and (f"sid={100+category}" in a["href"]):
+                    url_list.append((a["href"], a.text))
 
-def make_urllist(category, date, page_num):
+        print(category, page)
 
-    url = "https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1=105#&date=%2000:00:00&page=1"    
-    html = requests.get(url, headers=headers)   # url에 해당하는 html 코드를 가져옴
-    soup = BeautifulSoup(html.text, 'html.parser')
-    a_list = soup.select("li")
-    print(a_list)
-    urllist = []
-    # for a in a_list:
-    #     if "href" in a.attrs:
-    #         if ("article" in a["href"]) and ("sid=105" in a["href"]):
-    #             urllist.append(a)
-
-    print(urllist)
-
-make_urllist(category, date, page_num)
+print(url_list)
+print(len(url_list))
