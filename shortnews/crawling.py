@@ -2,11 +2,13 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
+import re
 import time
 import datetime
 from pytz import timezone
 
-from preprocessing import clean     # preprocessing파일에 전처리 함수 임포트
+# 전처리 클래스 파일
+from preprocessing import clean, getNouns # preprocessing파일에 Preprocessing 클래스 임포트 
 
 options = webdriver.ChromeOptions()
 options.add_argument('--headless')
@@ -90,10 +92,6 @@ class UrlCrawling:
                 break
             self.sports_url.append("https://sports.news.naver.com/news" + re.search('\?.+', a_list[i]["href"]).group())
             self.category.append(self.category_names[7])
-
-url_crawler = UrlCrawling([], [], [], [], ["정치", "경제", "사회", "생활/문화", "세계", "IT/과학", "연예", "스포츠"])
-url_crawler.getEntertainmentLink()
-
 
 
 # 기사 본문 크롤링
@@ -238,7 +236,7 @@ class ContentCrawling:
         for d in date_list:
             self.date.append(d.text)
 
-    def makeDataFrame(self):    # 수집한 데이터를 데이터프레임으로 변환
+    def makeDataFrame(self, url_crawler):    # 수집한 데이터를 데이터프레임으로 변환
         all_url = url_crawler.six_url + url_crawler.entertainment_url + url_crawler.sports_url
 
         article_df = pd.DataFrame({"category" : url_crawler.category,
@@ -249,8 +247,3 @@ class ContentCrawling:
 
         return article_df
 
-content_crawler = ContentCrawling([], [], [])
-content_crawler.getEntertainmentContent(url_crawler.entertainment_url)
-
-article_df = content_crawler.makeDataFrame()
-print(article_df)
