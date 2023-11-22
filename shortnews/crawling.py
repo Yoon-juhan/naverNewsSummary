@@ -20,15 +20,12 @@ browser = webdriver.Chrome(options=options)
 
 # 기사 링크 크롤링
 class UrlCrawling:
-    def __init__(self, six_url, entertainment_url, sports_url, category, category_names):
-        self.six_url = six_url
-        self.entertainment_url = entertainment_url
-        self.sports_url = sports_url
-        self.category = category
-        self.category_names = category_names
+    def __init__(self):
+        self.category_names = ["정치", "경제", "사회", "생활/문화", "세계", "IT/과학", "연예", "스포츠"]
+        self.category = []
 
-    def getSixLink(self):    # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
-
+    def getSixUrl(self):    # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
+        six_url = []
         for category in range(6):     # 6
             a_list = []
             for page in range(1, 2):  # 1, 6
@@ -44,12 +41,15 @@ class UrlCrawling:
                 print(f"{self.category_names[category]} {page} 페이지")
 
             for a in a_list:
-                self.six_url.append(a["href"])
+                six_url.append(a["href"])
                 self.category.append(self.category_names[category])
 
+        return six_url
 
-    def getEntertainmentLink(self):   # 연예
+
+    def getEntertainmentUrl(self):   # 연예
         # today = str(datetime.datetime.now(KST))[:11]  # 서울 기준 시간
+        entertainment_url = []
         a_list = []
         today = datetime.date.today()
 
@@ -67,12 +67,14 @@ class UrlCrawling:
             print(f"연예 {page} 페이지")
 
         for a in a_list:
-            self.entertainment_url.append("https://entertain.naver.com" + a["href"])
+            entertainment_url.append("https://entertain.naver.com" + a["href"])
             self.category.append(self.category_names[6])
 
+        return entertainment_url
 
-    def getSportsLink(self):    # 스포츠  (페이지마다 개수가 달라서 6페이지를 이동)
+    def getSportsUrl(self):    # 스포츠  (페이지마다 개수가 달라서 6페이지를 이동)
         # today = str(datetime.datetime.now(KST))[:11].replace('-', '')  # 서울 기준 시간
+        sports_url = []
         a_list = []
         today = str(datetime.date.today()).replace('-', '')
 
@@ -90,8 +92,11 @@ class UrlCrawling:
         for i in range(len(a_list)):
             if i == 100:  # 100개 링크 추가했으면 멈추기
                 break
-            self.sports_url.append("https://sports.news.naver.com/news" + re.search('\?.+', a_list[i]["href"]).group())
+            sports_url.append("https://sports.news.naver.com/news" + re.search('\?.+', a_list[i]["href"]).group())
             self.category.append(self.category_names[7])
+
+        return sports_url
+
 
 
 # 기사 본문 크롤링
@@ -236,10 +241,9 @@ class ContentCrawling:
         for d in date_list:
             self.date.append(d.text)
 
-    def makeDataFrame(self, url_crawler):    # 수집한 데이터를 데이터프레임으로 변환
-        all_url = url_crawler.six_url + url_crawler.entertainment_url + url_crawler.sports_url
+    def makeDataFrame(self, all_url, category):    # 수집한 데이터를 데이터프레임으로 변환
 
-        article_df = pd.DataFrame({"category" : url_crawler.category,
+        article_df = pd.DataFrame({"category" : category,
                                    "date" : self.date,
                                    "title" : self.title,
                                    "content" : self.content,
