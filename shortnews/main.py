@@ -6,7 +6,7 @@ import pandas as pd
 from crawling import UrlCrawling, ContentCrawling
 from preprocessing import clean, getNouns, getVector
 from clustering import addClusterNumber, getClusteredArticle
-
+from summary import getSummaryArticle
 '''
 # 링크 크롤링하는 객체 생성
 url_crawler = UrlCrawling()
@@ -41,6 +41,8 @@ test_df.drop(['Unnamed: 0'], axis=1, inplace=True)  # 파일 불러왔을 때 �
 vector_list = getVector(test_df)         # 카테고리 별로 명사를 벡터화한 리스트
 
 addClusterNumber(test_df, vector_list)   # 군집 번호 열 생성
-clustered_article_df, cluster_counts_df = getClusteredArticle(test_df)      # 상위 군집 10개에 해당하는 기사 df, 군집 개수 카운트한 df
+cluster_counts_df = getClusteredArticle(test_df)      # 상위 군집 10개에 해당하는 기사 df, 군집 개수 카운트한 df
 
-print(clustered_article_df)
+summary_article = getSummaryArticle(test_df, cluster_counts_df)
+
+print(summary_article)
