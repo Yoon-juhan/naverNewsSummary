@@ -3,7 +3,6 @@ import pandas as pd
 # from summa.summarizer import summarize
 
 def getSummaryArticle(article_df, cluster_counts_df):
-    category_names = ["정치", "경제", "사회", "생활/문화", "세계", "IT/과학", "연예", "스포츠"]
     summary_article = pd.DataFrame(columns=["category", "title", "content", "url"])
 
     for i in range(len(cluster_counts_df)):
@@ -18,7 +17,7 @@ def getSummaryArticle(article_df, cluster_counts_df):
         url = ",".join(list(temp_df["url"]))                      # 전체 링크
 
         try:
-            summary_content = summarize(content, ratio=0.1)
+            summary_content = summarize(content, ratio=0.3)
             if not summary_content:     # 요약문이 비어있으면 (너무 짧아서?)
                 summary_content = "어떻게 고칠까?"
         except:

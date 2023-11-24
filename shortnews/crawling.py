@@ -68,7 +68,7 @@ class UrlCrawling:
 
         for a in a_list:
             entertainment_url.append("https://entertain.naver.com" + a["href"])
-            self.category.append(self.category_names[6])
+            self.category.append("연예")
 
         return entertainment_url
 
@@ -93,7 +93,7 @@ class UrlCrawling:
             if i == 100:  # 100개 링크 추가했으면 멈추기
                 break
             sports_url.append("https://sports.news.naver.com/news" + re.search('\?.+', a_list[i]["href"]).group())
-            self.category.append(self.category_names[7])
+            self.category.append("스포츠")
 
         return sports_url
 
@@ -110,13 +110,17 @@ class ContentCrawling:
         title_list = []
         content_list = []
         date_list = []
-        
+        cnt = 1
+
         for url in url_list:
             browser.get(url)
 
             time.sleep(0.5)
 
             soup = BeautifulSoup(browser.page_source, "html.parser")
+
+            print(cnt)
+            cnt+=1
 
             try:
                 title_list.extend(soup.select("#title_area span"))              # 제목
@@ -153,6 +157,7 @@ class ContentCrawling:
         title_list = []
         content_list = []
         date_list = []
+        cnt = 1
         
         for url in url_list:
             browser.get(url)
@@ -160,6 +165,9 @@ class ContentCrawling:
             time.sleep(0.5)
             
             soup = BeautifulSoup(browser.page_source, "html.parser")
+
+            print(cnt)
+            cnt+=1
 
             try:
                 title_list.extend(soup.select(".end_tit"))                      # 제목
@@ -199,14 +207,18 @@ class ContentCrawling:
         title_list = []
         content_list = []
         date_list = []
+        cnt = 1
 
         for url in url_list:
 
-            browser.get(url)                                                    # 스포츠 기사만 여기서 넘어가는데 굉장히 진짜 대박 오래 걸림 왜 그럴까? 스포츠
+            browser.get(url)                                                    
             print(url)
             time.sleep(0.5)
 
             soup = BeautifulSoup(browser.page_source, "html.parser")
+
+            print(cnt)
+            cnt+=1
 
             title_list.extend(soup.select(".news_headline .title"))             # 제목
 
@@ -221,12 +233,13 @@ class ContentCrawling:
             while c[0].find(attrs={"class" : "vod_area"}):                      # 영상 있는 만큼
                 c[0].find(attrs={"class" : "vod_area"}).decompose()             # 본문 영상에 있는 글자 없애기
 
-            c[0].find(attrs={"class" : "source"}).decompose()
-            c[0].find(attrs={"class" : "byline"}).decompose()
-            c[0].find(attrs={"class" : "reporter_area"}).decompose()
-            c[0].find(attrs={"class" : "copyright"}).decompose()
-            c[0].find(attrs={"class" : "categorize"}).decompose()
-            c[0].find(attrs={"class" : "promotion"}).decompose()
+            if c[0].find(attrs={"class" : "source"}): c[0].find(attrs={"class" : "source"}).decompose()
+            if c[0].find(attrs={"class" : "byline"}): c[0].find(attrs={"class" : "byline"}).decompose()
+            if c[0].find(attrs={"class" : "reporter_area"}): c[0].find(attrs={"class" : "reporter_area"}).decompose()
+            if c[0].find(attrs={"class" : "copyright"}): c[0].find(attrs={"class" : "copyright"}).decompose()
+            if c[0].find(attrs={"class" : "categorize"}): c[0].find(attrs={"class" : "categorize"}).decompose()
+            if c[0].find(attrs={"class" : "promotion"}): c[0].find(attrs={"class" : "promotion"}).decompose()
+        
 
             content_list.extend(c)
 
@@ -250,4 +263,3 @@ class ContentCrawling:
                                    "url" : all_url})
 
         return article_df
-

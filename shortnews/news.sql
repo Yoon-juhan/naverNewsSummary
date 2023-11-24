@@ -6,9 +6,9 @@ cate_id VARCHAR2(100),
 title VARCHAR2(1000),
 content CLOB,
 link VARCHAR2(1000),
-views NUMBER
+views NUMBER,
+cre_date timestamp
 );
-
 
 drop sequence news_id_seq;
 
@@ -18,9 +18,6 @@ increment by 1;
 
 select * from news
 order by to_number(news_id);
-
-delete news;
-             
- commit
-             
+                   
+select timestamp from dual;
         

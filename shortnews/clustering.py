@@ -20,7 +20,7 @@ def getClusteredArticle(df): # 카테고리 별로 군집의 개수를 센다.
                                     'cluster_number' : [0],
                                     'cluster_count' : [0]})
 
-    for i in range(7):
+    for i in range(8):
         t = df[df['category'] == category_names[i]]['cluster_number'].value_counts().reset_index()
         t.columns = ['cluster_number', 'cluster_count']
         t['category'] = [category_names[i]] * len(t)
@@ -32,11 +32,4 @@ def getClusteredArticle(df): # 카테고리 별로 군집의 개수를 센다.
     # 상위 군집 10개씩만 추출
     cluster_counts_df = cluster_counts_df[cluster_counts_df.index < 10]
     
-    # clustered_article_df = pd.DataFrame()
-    
-    # for i in range(len(cluster_counts_df)):
-    #     category_name, cluster_number = cluster_counts_df.iloc[i, 0:2]    # 카테고리 이름, 군집 번호
-
-    #     clustered_article_df = pd.concat([clustered_article_df, df[(df['category'] == category_name) & (df['cluster_number'] == cluster_number)]])
-
     return cluster_counts_df
