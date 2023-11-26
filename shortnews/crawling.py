@@ -101,10 +101,11 @@ class UrlCrawling:
 
 # 기사 본문 크롤링
 class ContentCrawling:                  
-    def __init__(self, title, content, date):
+    def __init__(self, title, content, date, img):
         self.title = title
         self.content = content
         self.date = date
+        self.img = img
 
     def getSixContent(self, url_list):  # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
         title_list = []
