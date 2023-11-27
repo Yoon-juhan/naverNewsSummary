@@ -5,10 +5,10 @@ import numpy as np
 
 # 필요없는 내용 삭제 함수
 def clean(article):
-    article = re.sub('\[.{1,15}\]','',article)
+    article = re.sub('\w{2,4}기자','',article)
     article = re.sub('\w{2,4} 온라인 기자','',article)
     article = re.sub('\w+ 기자','',article)
-    article = re.sub('\w{2,4}기자','',article)
+    article = re.sub('\[.{1,15}\]','',article)
     article = re.sub('\w+ 기상캐스터','',article)
     article = re.sub('사진','',article)
     article = re.sub('포토','',article)
@@ -44,13 +44,16 @@ def getVector(article_df):    # 카테고리 별로 벡터 생성
     vector_list = []
 
     for i in range(8):
-        text = [" ".join(noun) for noun in article_df['nouns'][article_df['category'] == category_names[i]]]    # 명사 열을 하나의 리스트에 담는다.
+        try:
+            text = [" ".join(noun) for noun in article_df['nouns'][article_df['category'] == category_names[i]]]    # 명사 열을 하나의 리스트에 담는다.
 
-        tfidf_vectorizer = TfidfVectorizer(min_df = 3, ngram_range=(1, 5))
-        tfidf_vectorizer.fit(text)
-        vector = tfidf_vectorizer.transform(text).toarray()                         # vector list 반환
-        vector = np.array(vector)
-        vector_list.append(vector)
+            tfidf_vectorizer = TfidfVectorizer(min_df = 3, ngram_range=(1, 5))
+            tfidf_vectorizer.fit(text)
+            vector = tfidf_vectorizer.transform(text).toarray()                         # vector list 반환
+            vector = np.array(vector)
+            vector_list.append(vector)
+        except:
+            print("크롤링 안한 카테고리 :", category_names[i])
 
     return vector_list
 

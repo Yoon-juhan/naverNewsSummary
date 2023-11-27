@@ -5,9 +5,9 @@ news_id VARCHAR2(50) PRIMARY KEY,
 cate_id VARCHAR2(100),
 title VARCHAR2(1000),
 content CLOB,
+img VARCHAR2(1000),
 link VARCHAR2(1000),
-views NUMBER,
-cre_date timestamp
+views NUMBER
 );
 
 drop sequence news_id_seq;
@@ -18,6 +18,4 @@ increment by 1;
 
 select * from news
 order by to_number(news_id);
-                   
-select timestamp from dual;
-        
+                        

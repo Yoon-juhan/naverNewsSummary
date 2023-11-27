@@ -26,7 +26,7 @@ class UrlCrawling:
 
     def getSixUrl(self):    # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
         six_url = []
-        for category in range(6):     # 6
+        for category in range(1):     # 6
             a_list = []
             for page in range(1, 2):  # 1, 6
                 url = f'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1={100 + category}#&date=%2000:00:00&page={page}'
@@ -100,7 +100,7 @@ class UrlCrawling:
 
 
 # 기사 본문 크롤링
-class ContentCrawling:                  
+class ContentCrawling:
     def __init__(self, title, content, date, img):
         self.title = title
         self.content = content
@@ -111,6 +111,7 @@ class ContentCrawling:
         title_list = []
         content_list = []
         date_list = []
+        img_list = []
         cnt = 1
 
         for url in url_list:
@@ -124,9 +125,19 @@ class ContentCrawling:
             cnt+=1
 
             try:
-                title_list.extend(soup.select("#title_area span"))              # 제목
+                title_list.extend(soup.select("#title_area span"))              # 제목 추가
 
-                c = soup.find_all(attrs={"id" : "dic_area"})                    # 본문
+                c = soup.find_all(attrs={"id" : "dic_area"})                    # 본문 가져오기
+
+                img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
+
+                if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
+                    img_src_list = []
+                    for img in img_tag:
+                        img_src_list.append(img['src'])
+                    img_list.append(",".join(img_src_list))
+                else:
+                    img_list.append("")
 
                 while c[0].find(attrs={"class" : "end_photo_org"}):             # 이미지 있는 만큼
                     c[0].find(attrs={"class" : "end_photo_org"}).decompose()    # 본문 이미지에 있는 글자 없애기
@@ -137,9 +148,9 @@ class ContentCrawling:
                 if c[0].find(attrs={"class" : "artical-btm"}):                  # 하단에 제보하기 칸 있으면 삭제
                     c[0].find(attrs={"class" : "artical-btm"}).decompose()
 
-                content_list.extend(c)
+                content_list.extend(c)                                          # 본문 추가
 
-                date_list.extend(soup.select("._ARTICLE_DATE_TIME"))            # 날짜
+                date_list.extend(soup.select("._ARTICLE_DATE_TIME"))            # 날짜 추가
 
             except IndexError:
                 print("삭제된 기사")
@@ -153,27 +164,41 @@ class ContentCrawling:
         for d in date_list:
             self.date.append(d.text)
 
+        for i in img_list:
+            self.img.append(i)
 
     def getEntertainmentContent(self, url_list):    # 연예
         title_list = []
         content_list = []
         date_list = []
+        img_list = []
         cnt = 1
-        
+
         for url in url_list:
             browser.get(url)
 
             time.sleep(0.5)
-            
+
             soup = BeautifulSoup(browser.page_source, "html.parser")
 
             print(cnt)
             cnt+=1
 
             try:
-                title_list.extend(soup.select(".end_tit"))                      # 제목
+                title_list.extend(soup.select(".end_tit"))                      # 제목 추가
 
-                c = soup.find_all(attrs={"class" : "article_body"})             # 본문
+                c = soup.find_all(attrs={"class" : "article_body"})             # 본문 가져오기
+
+                img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
+
+                if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
+                    img_src_list = []
+                    for img in img_tag:
+                        img_src_list.append(img['src'])
+                    img_list.append(",".join(img_src_list))
+                else:
+                    img_list.append("")
+
 
                 while c[0].find(attrs={"class" : "end_photo_org"}):             # 이미지 있는 만큼
                     c[0].find(attrs={"class" : "end_photo_org"}).decompose()    # 본문 이미지에 있는 글자 없애기
@@ -181,15 +206,15 @@ class ContentCrawling:
                 if c[0].find(attrs={"class" : "caption"}):                      # 이미지 설명 없애기
                     c[0].find(attrs={"class" : "caption"}).decompose()
 
-                while c[0].find(attrs={"class" : "video_area"}):                # 영상 있는 만큼
-                    c[0].find(attrs={"class" : "video_area"}).decompose()       # 본문 영상에 있는 글자 없애기
+                while c[0].find(attrs={"id" : "video_area"}):                # 영상 있는 만큼
+                    c[0].find(attrs={"id" : "video_area"}).decompose()       # 본문 영상 없애기
 
                 while c[0].find(attrs={"name" : "iframe"}):
                     c[0].find(attrs={"name" : "iframe"}).decompose()
 
-                content_list.extend(c)
+                content_list.extend(c)                                          # 본문 추가
 
-                date_list.extend(soup.select_one(".author em"))                 # 날짜
+                date_list.extend(soup.select_one(".author em"))                 # 날짜 추가
 
             except IndexError:
                 print("삭제된 기사")
@@ -202,18 +227,21 @@ class ContentCrawling:
 
         for d in date_list:
             self.date.append(d.text)
-
+            
+        for i in img_list:
+            self.img.append(i)
 
     def getSportsContent(self, url_list):   # 스포츠
         title_list = []
         content_list = []
         date_list = []
+        img_list = []
         cnt = 1
 
         for url in url_list:
 
             browser.get(url)                                                    
-            print(url)
+            
             time.sleep(0.5)
 
             soup = BeautifulSoup(browser.page_source, "html.parser")
@@ -221,9 +249,19 @@ class ContentCrawling:
             print(cnt)
             cnt+=1
 
-            title_list.extend(soup.select(".news_headline .title"))             # 제목
+            title_list.extend(soup.select(".news_headline .title"))             # 제목 추가 
 
-            c = soup.find_all(attrs={"class" : "news_end"})                     # 본문
+            c = soup.find_all(attrs={"class" : "news_end"})                     # 본문 가져오기
+
+            img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
+
+            if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
+                img_src_list = []
+                for img in img_tag:
+                    img_src_list.append(img['src'])
+                img_list.append(",".join(img_src_list))
+            else:
+                img_list.append("")
 
             while c[0].find(attrs={"class" : "end_photo_org"}):                 # 이미지 있는 만큼
                 c[0].find(attrs={"class" : "end_photo_org"}).decompose()        # 본문 이미지에 있는 글자 없애기
@@ -232,7 +270,7 @@ class ContentCrawling:
                 c[0].find(attrs={"class" : "image"}).decompose()
 
             while c[0].find(attrs={"class" : "vod_area"}):                      # 영상 있는 만큼
-                c[0].find(attrs={"class" : "vod_area"}).decompose()             # 본문 영상에 있는 글자 없애기
+                c[0].find(attrs={"class" : "vod_area"}).decompose()             # 본문 영상 없애기
 
             if c[0].find(attrs={"class" : "source"}): c[0].find(attrs={"class" : "source"}).decompose()
             if c[0].find(attrs={"class" : "byline"}): c[0].find(attrs={"class" : "byline"}).decompose()
@@ -240,11 +278,10 @@ class ContentCrawling:
             if c[0].find(attrs={"class" : "copyright"}): c[0].find(attrs={"class" : "copyright"}).decompose()
             if c[0].find(attrs={"class" : "categorize"}): c[0].find(attrs={"class" : "categorize"}).decompose()
             if c[0].find(attrs={"class" : "promotion"}): c[0].find(attrs={"class" : "promotion"}).decompose()
-        
 
-            content_list.extend(c)
+            content_list.extend(c)                                        # 본문 추가
 
-            date_list.extend(soup.select_one(".info span"))               # 날짜
+            date_list.extend(soup.select_one(".info span"))               # 날짜 추가
 
         for t in title_list:
             self.title.append(clean(t.text))
@@ -253,7 +290,11 @@ class ContentCrawling:
             self.content.append(clean(c.text))
 
         for d in date_list:
-            self.date.append(d.text)
+            d = (d.text)[5:]
+            self.date.append(d)
+
+        for i in img_list:
+            self.img.append(i)
 
     def makeDataFrame(self, all_url, category):    # 수집한 데이터를 데이터프레임으로 변환
 
@@ -261,6 +302,7 @@ class ContentCrawling:
                                    "date" : self.date,
                                    "title" : self.title,
                                    "content" : self.content,
+                                   "img" : self.img,
                                    "url" : all_url})
 
         return article_df

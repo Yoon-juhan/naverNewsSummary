@@ -37,7 +37,8 @@ cluster_counts_df = getClusteredArticle(article_df)               # 군집 개�
 
 summary_article = getSummaryArticle(article_df, cluster_counts_df)     # 요약한 기사 데이터 프레임 반환
 
-# print(summary_article)
+
+print(summary_article)
 
 # insert(summary_article.values.tolist())
 
