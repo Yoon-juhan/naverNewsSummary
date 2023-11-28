@@ -4,7 +4,7 @@ import pandas as pd
 
 # 내가 만든 기능 임포트
 from crawling import UrlCrawling, ContentCrawling
-from preprocessing import clean, getNouns, getVector
+from preprocessing import clean, getNouns, getVector, removeEnglishArticle
 from clustering import addClusterNumber, getClusteredArticle
 from summary import getSummaryArticle
 from database import insert
@@ -29,6 +29,8 @@ content_crawler.getSportsContent(sports_url)
 article_df = content_crawler.makeDataFrame(all_url, category)     # 본문 데이터프레임 생성
 
 article_df = getNouns(article_df)                                 # 명사 추출
+
+article_df = removeEnglishArticle(article_df)                     # 영어 기사 삭제
 
 vector_list = getVector(article_df)                               # 명사 벡터화
 
