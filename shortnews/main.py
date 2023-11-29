@@ -2,12 +2,12 @@ import pandas as pd
 
 # coding: utf-8
 
-# 내가 만든 기능 임포트
+# 만든 기능 임포트
 from crawling import UrlCrawling, ContentCrawling
-from preprocessing import clean, getNouns, getVector, removeEnglishArticle
-from clustering import addClusterNumber, getClusteredArticle
-from summary import getSummaryArticle
-from database import insert
+from preprocessing import Preprocessing
+from clustering import Clustering
+from summary import Summary
+from database import DB
 
 
 # 링크 크롤링하는 객체 생성
@@ -26,23 +26,22 @@ content_crawler.getSixContent(six_url)
 content_crawler.getEntertainmentContent(entertainment_url)
 content_crawler.getSportsContent(sports_url)
 
-article_df = content_crawler.makeDataFrame(all_url, category)     # 본문 데이터프레임 생성
+article_df = content_crawler.makeDataFrame(all_url, category)                   # 본문 데이터프레임 생성
 
-article_df = getNouns(article_df)                                 # 명사 추출
+article_df = Preprocessing.getNouns(article_df)                                 # 명사 추출
 
-article_df = removeEnglishArticle(article_df)                     # 영어 기사 삭제
+article_df = Preprocessing.removeEnglishArticle(article_df)                     # 영어 기사 삭제
 
-vector_list = getVector(article_df)                               # 명사 벡터화
+vector_list = Preprocessing.getVector(article_df)                               # 명사 벡터화
 
-addClusterNumber(article_df, vector_list)                         # 군집 번호 열 생성
-cluster_counts_df = getClusteredArticle(article_df)               # 군집 개수 카운트한 df
+Clustering.addClusterNumber(article_df, vector_list)                            # 군집 번호 열 생성
+cluster_counts_df = Clustering.getClusteredArticle(article_df)                  # 군집 개수 카운트한 df
 
-summary_article = getSummaryArticle(article_df, cluster_counts_df)     # 요약한 기사 데이터 프레임 반환
-
+summary_article = Summary.getSummaryArticle(article_df, cluster_counts_df)              # 요약한 기사 데이터 프레임 반환
 
 print(summary_article)
 
-# insert(summary_article.values.tolist())
+# DB.insert(summary_article.values.tolist())
 
 """
 # csv 파일로 테스트

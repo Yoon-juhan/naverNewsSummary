@@ -7,8 +7,8 @@ import time
 import datetime
 from pytz import timezone
 
-# 전처리 클래스 파일
-from preprocessing import clean, getNouns # preprocessing파일에 Preprocessing 클래스 임포트 
+# 전처리 클래스
+from preprocessing import Preprocessing
 
 options = webdriver.ChromeOptions()
 options.add_argument('--headless')
@@ -156,10 +156,10 @@ class ContentCrawling:
                 print("삭제된 기사")
 
         for t in title_list:
-            self.title.append(clean(t.text))
+            self.title.append(Preprocessing.clean(t.text))
 
         for c in content_list:
-            self.content.append(clean(c.text))
+            self.content.append(Preprocessing.clean(c.text))
 
         for d in date_list:
             self.date.append(d.text)
@@ -220,10 +220,10 @@ class ContentCrawling:
                 print("삭제된 기사")
 
         for t in title_list:
-            self.title.append(clean(t.text))
+            self.title.append(Preprocessing.clean(t.text))
 
         for c in content_list:
-            self.content.append(clean(c.text))
+            self.content.append(Preprocessing.clean(c.text))
 
         for d in date_list:
             self.date.append(d.text)
@@ -284,10 +284,10 @@ class ContentCrawling:
             date_list.extend(soup.select_one(".info span"))               # 날짜 추가
 
         for t in title_list:
-            self.title.append(clean(t.text))
+            self.title.append(Preprocessing.clean(t.text))
 
         for c in content_list:
-            self.content.append(clean(c.text))
+            self.content.append(Preprocessing.clean(c.text))
 
         for d in date_list:
             d = (d.text)[5:]
