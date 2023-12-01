@@ -26,9 +26,9 @@ class UrlCrawling:
 
     def getSixUrl(self):    # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
         six_url = []
-        for category in range(1):     # 6
+        for category in range(6):     # 6
             a_list = []
-            for page in range(1, 2):  # 1, 6
+            for page in range(1, 11):  # 1, 6
                 url = f'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1={100 + category}#&date=%2000:00:00&page={page}'
                 browser.get(url)
 
@@ -53,7 +53,7 @@ class UrlCrawling:
         a_list = []
         today = datetime.date.today()
 
-        for page in range(1, 2):  # 1, 5
+        for page in range(1, 11):  # 1, 5
             url = f'https://entertain.naver.com/now#sid=106&date={today}&page={page}'
             browser.get(url)
 
@@ -78,7 +78,7 @@ class UrlCrawling:
         a_list = []
         today = str(datetime.date.today()).replace('-', '')
 
-        for page in range(1, 2):  # 1, 7
+        for page in range(1, 7):  # 1, 7
             url = f'https://sports.news.naver.com/general/news/index?isphoto=N&type=latest&date={today}&page={page}'
             browser.get(url)
 
