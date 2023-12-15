@@ -27,7 +27,7 @@ def select():
 
     try:
         sql = """select * from news
-                order by to_number(news_id)"""
+                order by to_number(news_id) desc"""
         
         cur = conn.cursor()
         cur.execute(sql)

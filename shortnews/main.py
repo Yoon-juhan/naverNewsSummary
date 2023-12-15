@@ -8,7 +8,7 @@ from preprocessing import Preprocessing
 from clustering import Clustering
 from summary import Summary
 from database import DB
-
+from tts import tts
 
 # 링크 크롤링하는 객체 생성
 url_crawler = UrlCrawling()
@@ -39,7 +39,7 @@ cluster_counts_df = Clustering.getClusteredArticle(article_df)                  
 
 summary_article = Summary.getSummaryArticle(article_df, cluster_counts_df)              # 요약한 기사 데이터 프레임 반환
 
-print(summary_article)
+tts(summary_article)
 
 # DB.insert(summary_article.values.tolist())
 
