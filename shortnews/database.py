@@ -2,9 +2,15 @@ import cx_Oracle as cx
 import pandas as pd
 import datetime
 
-id = "c##2201058"
-pw = "p2201058"
-url = "10.30.3.95:1521/orcl"
+# 테스트 DB
+# id = "c##2201058"
+# pw = "p2201058"
+# url = "10.30.3.95:1521/orcl"
+
+# 우리 프로젝트 DB
+id = "snews"
+pw = "snews"
+url = "13.209.75.71:1521/xe"
 
 def insert(summary_article):
     conn = cx.connect(id, pw, url)
@@ -12,11 +18,18 @@ def insert(summary_article):
     now = datetime.datetime.now()
     now = str(now.year) + str(now.month) + str(now.day) + str(now.hour)
 
-    sql = f"""insert into news(news_id, cate_id, title, content, img, link, views)
-            values({now} || news_id_seq.nextval, :1, :2, :3, :4, :5, 0)"""
+    # 테스트
+    # sql = f"""insert into news(news_id, cate_id, title, content, img, link, views)
+    #           values({now} || news_id_seq.nextval, :1, :2, :3, :4, :5, 0)"""
+
+    # 우리 프로젝트
+    sql = f"""insert into news(news_id, cate_id, title, content, views, link)
+              values({now} || news_id_seq.nextval, :1, :2, :3, 0, :4)"""
 
     cur = conn.cursor()
     cur.executemany(sql, summary_article)
+    
+    print("insert 성공")
 
     cur.close()
     conn.commit()

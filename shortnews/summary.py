@@ -15,13 +15,18 @@ class Summary:
 
             category = temp_df["category"].iloc[0]          # 카테고리
             title = temp_df["title"].iloc[0]                # 일단은 첫 번째 뉴스 제목
-            # content = "".join(temp_df["content"])           # 본문 내용 여러개를 하나의 문자열로 합쳐서 요약
+            # content = " ".join(temp_df["content"])           # 본문 내용 여러개를 하나의 문자열로 합쳐서 요약
             content = temp_df["content"].iloc[0]            # 같은 군집 첫 번째 기사
-            img = ",".join(list(temp_df["img"]))            # 전체 이미지
+            try:
+                img = ",".join(list(temp_df["img"]))            # 전체 이미지
+            except:
+                img = ""
+
             url = ",".join(list(temp_df["url"]))            # 전체 링크
 
             try:
-                summary_content = summarize(content, ratio=0.1)
+                # summary_content = summarize(content, ratio=0.2)   # 비율
+                summary_content = summarize(content, word_count=50) # 단어 수
                 if not summary_content:     # 요약문이 비어있으면 (너무 짧아서?)
                     summary_content = "요약 실패"
             except:

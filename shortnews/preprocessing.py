@@ -17,16 +17,15 @@ class Preprocessing:
         article = re.sub('포토','',article)
         article = re.sub('\(.*뉴스.{0,3}\)','', article)  # (~뉴스~) 삭제
         article = re.sub('\S+@[a-z.]+','',article)          # 이메일 삭제
-        article = re.sub("(\s=\s)","", article)
+        article = re.sub('(\s=\s)','', article)
 
-        article = re.sub('[\n\t\u200b\xa0]','',article)
-        # article = re.sub('\n','',article)
-        # article = re.sub('\t','',article)
-        # article = re.sub('\u200b','',article)
-        # article = re.sub('\xa0','',article)
+        article = re.sub('\.$', '. ', article)
+        article = re.sub('[\t\u200b\xa0]','',article)
         article = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',article)
         # article = re.sub('([a-zA-Z])','',article)   # 영어 삭제
         # article = re.sub('[-=+,#/\?:^$.@*\"※~&%ㆍ!』\\‘’“”|\(\)\[\]\<\>`\'…》]','',article)   # 특수문자 삭제
+        article = re.sub('[-=+,#/\?:^$@*\"※~&%ㆍ!』\\‘’“”|\(\)\[\]\<\>`\'…》■◆◇▶▷▲○●]','',article)   # 특수문자 삭제 (.빼고)
+
 
         return article
 

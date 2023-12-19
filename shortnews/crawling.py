@@ -26,7 +26,7 @@ class UrlCrawling:
 
     def getSixUrl(self):    # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
         six_url = []
-        for category in range(1):     # 6
+        for category in range(6):     # 6
             a_list = []
             for page in range(1, 2):  # 1, 6
                 url = f'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1={100 + category}#&date=%2000:00:00&page={page}'
@@ -121,7 +121,7 @@ class ContentCrawling:
 
             soup = BeautifulSoup(browser.page_source, "html.parser")
 
-            print(cnt)
+            print(cnt, end=", ")
             cnt+=1
 
             try:
@@ -181,7 +181,7 @@ class ContentCrawling:
 
             soup = BeautifulSoup(browser.page_source, "html.parser")
 
-            print(cnt)
+            print(cnt, end=", ")
             cnt+=1
 
             try:
@@ -246,7 +246,7 @@ class ContentCrawling:
 
             soup = BeautifulSoup(browser.page_source, "html.parser")
 
-            print(cnt)
+            print(cnt, end=", ")
             cnt+=1
 
             title_list.extend(soup.select(".news_headline .title"))             # 제목 추가 
