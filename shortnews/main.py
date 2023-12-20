@@ -22,7 +22,7 @@ def start():
     category = url_crawler.category                            # 카테고리 리스트
 
     # 본문 크롤링하는 객체 생성
-    content_crawler = ContentCrawling([], [], [], [])
+    content_crawler = ContentCrawling([], [], [], [], [])
 
     content_crawler.getSixContent(six_url)
     content_crawler.getEntertainmentContent(entertainment_url)

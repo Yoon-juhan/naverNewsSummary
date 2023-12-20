@@ -1,6 +1,7 @@
 import re
 from konlpy.tag import Okt
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
 # 전처리 클래스
@@ -13,18 +14,18 @@ class Preprocessing:
         article = re.sub('\w+ 기자','',article)
         article = re.sub('\[.{1,15}\]','',article)
         article = re.sub('\w+ 기상캐스터','',article)
-        article = re.sub('사진','',article)
+        # article = re.sub('사진','',article)
         article = re.sub('포토','',article)
         article = re.sub('\(.*뉴스.{0,3}\)','', article)  # (~뉴스~) 삭제
         article = re.sub('\S+@[a-z.]+','',article)          # 이메일 삭제
         article = re.sub('(\s=\s)','', article)
 
-        article = re.sub('\.$', '. ', article)
-        article = re.sub('[\t\u200b\xa0]','',article)
+        article = re.sub('[\n\t\u200b\xa0]','',article)
+        article = re.sub('다\.', '다.\n', article)
         article = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',article)
         # article = re.sub('([a-zA-Z])','',article)   # 영어 삭제
-        # article = re.sub('[-=+,#/\?:^$.@*\"※~&%ㆍ!』\\‘’“”|\(\)\[\]\<\>`\'…》]','',article)   # 특수문자 삭제
-        article = re.sub('[-=+,#/\?:^$@*\"※~&%ㆍ!』\\‘’“”|\(\)\[\]\<\>`\'…》■◆◇▶▷▲○●]','',article)   # 특수문자 삭제 (.빼고)
+        # article = re.sub('[-=+#/\?:^$@*※~&%ㆍ!,\.』\\‘’“”|\(\)\[\]\<\>`\'…》■◆◇▶▷▲○●]','',article)   # 특수문자 삭제
+        article = re.sub('[-=+#/:^$@*※&%ㆍ!』\\‘’“”|\[\]\<\>`…》■◆◇▶▷▲○●]','',article)   # 특수문자 삭제
 
 
         return article
@@ -76,3 +77,19 @@ class Preprocessing:
 
         if len(index) >= 1:                        # 삭제할 기사 있으면 삭제
             article_df.drop(index, inplace=True)
+
+    # 요약 유사도 검사 함수
+    def similarity(my, naver):
+
+        # 코사인 유사도
+        data = (my, naver)
+        tfidf_vectorizer = TfidfVectorizer()
+        tfidf_matrix = tfidf_vectorizer.fit_transform(data)
+        cos_similarity = cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])
+
+        # 자카드 유사도
+        intersection_cardinality = len(set.intersection(*[set(my), set(naver)]))
+        union_cardinality = len(set.union(*[set(my), set(naver)]))
+        jaccard_similarity = intersection_cardinality / float(union_cardinality)
+
+        return [cos_similarity, jaccard_similarity]

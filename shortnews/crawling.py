@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import re
@@ -101,11 +102,12 @@ class UrlCrawling:
 
 # 기사 본문 크롤링
 class ContentCrawling:
-    def __init__(self, title, content, date, img):
+    def __init__(self, title, content, date, img, summary):
         self.title = title
         self.content = content
         self.date = date
         self.img = img
+        self.summary = summary          # 네이버 요약봇이 요약한 내용
 
     def getSixContent(self, url_list):  # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
         title_list = []
@@ -116,18 +118,41 @@ class ContentCrawling:
 
         for url in url_list:
             browser.get(url)
+            summary_btn = False
 
+            try:
+                browser.find_element(By.ID, "_SUMMARY_BUTTON").click()    # 요약봇 클릭
+                browser.find_element(By.ID, "_SUMMARY_BUTTON").click()    # 요약봇 클릭
+
+                summary_btn = True
+                print(cnt, end=", ")
+            except:
+                print(cnt, "요약봇 없어", end=", ")
+            
+            cnt+=1
+            
             time.sleep(0.5)
 
             soup = BeautifulSoup(browser.page_source, "html.parser")
-
-            print(cnt, end=", ")
-            cnt+=1
 
             try:
                 title_list.extend(soup.select("#title_area span"))              # 제목 추가
 
                 c = soup.find_all(attrs={"id" : "dic_area"})                    # 본문 가져오기
+
+                if summary_btn:
+                    # summary_content = soup.select("._SUMMARY_CONTENT_BODY")
+                    summary_content = soup.find(attrs={"class" : "_SUMMARY_CONTENT_BODY"})
+                    try:
+                        summary_content.find("strong").decompose()
+                        # self.summary.append(summary_content.text)
+                        self.summary.append(re.sub('다\.', '다.\n', summary_content.text))
+                    except:
+                        self.summary.append("x")
+
+                else:
+                    self.summary.append("x")
+                
 
                 img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
 
@@ -137,7 +162,7 @@ class ContentCrawling:
                         img_src_list.append(img['src'])
                     img_list.append(",".join(img_src_list))
                 else:
-                    img_list.append("")
+                    img_list.append("x")
 
                 while c[0].find(attrs={"class" : "end_photo_org"}):             # 이미지 있는 만큼
                     c[0].find(attrs={"class" : "end_photo_org"}).decompose()    # 본문 이미지에 있는 글자 없애기
@@ -154,6 +179,8 @@ class ContentCrawling:
 
             except IndexError:
                 print("삭제된 기사")
+
+        print()
 
         for t in title_list:
             self.title.append(Preprocessing.clean(t.text))
@@ -197,7 +224,7 @@ class ContentCrawling:
                         img_src_list.append(img['src'])
                     img_list.append(",".join(img_src_list))
                 else:
-                    img_list.append("")
+                    img_list.append("x")
 
 
                 while c[0].find(attrs={"class" : "end_photo_org"}):             # 이미지 있는 만큼
@@ -219,8 +246,11 @@ class ContentCrawling:
             except IndexError:
                 print("삭제된 기사")
 
+        print()
+
         for t in title_list:
             self.title.append(Preprocessing.clean(t.text))
+            self.summary.append("x")
 
         for c in content_list:
             self.content.append(Preprocessing.clean(c.text))
@@ -261,7 +291,7 @@ class ContentCrawling:
                     img_src_list.append(img['src'])
                 img_list.append(",".join(img_src_list))
             else:
-                img_list.append("")
+                img_list.append("x")
 
             while c[0].find(attrs={"class" : "end_photo_org"}):                 # 이미지 있는 만큼
                 c[0].find(attrs={"class" : "end_photo_org"}).decompose()        # 본문 이미지에 있는 글자 없애기
@@ -285,6 +315,7 @@ class ContentCrawling:
 
         for t in title_list:
             self.title.append(Preprocessing.clean(t.text))
+            self.summary.append("x")
 
         for c in content_list:
             self.content.append(Preprocessing.clean(c.text))
@@ -303,6 +334,7 @@ class ContentCrawling:
                                    "title" : self.title,
                                    "content" : self.content,
                                    "img" : self.img,
-                                   "url" : all_url})
+                                   "url" : all_url,
+                                   "summary" : self.summary})
 
         return article_df
