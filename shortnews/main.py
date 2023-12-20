@@ -39,9 +39,12 @@ def start():
     Clustering.addClusterNumber(article_df, vector_list)                            # 군집 번호 열 생성
     cluster_counts_df = Clustering.getClusteredArticle(article_df)                  # 군집 개수 카운트한 df
 
-    summary_article = Summary.getSummaryArticle(article_df, cluster_counts_df)              # 요약한 기사 데이터 프레임 반환
+    summary_article = Summary.getSummaryArticle(article_df, cluster_counts_df)      # 요약한 기사 데이터 프레임 반환
+    summary_article = Preprocessing.convertCategory(summary_article)                # 카테고리이름을 번호로 변경
 
     # tts(summary_article)
+    del summary_article['naver_summary']
+    del summary_article['similarity']
 
     insert(summary_article.values.tolist())
 
@@ -52,25 +55,3 @@ start()
 # while True:
 #     schedule.run_pending()
 #     time.sleep(1)
-
-
-
-
-"""
-# csv 파일로 테스트
-
-test_df = pd.read_csv("article.csv")
-test_df['nouns'] = test_df['nouns'].apply(lambda x: eval(x))        # 명사 열을 다시 리스트 형식으로 변환
-
-vector_list = getVector(test_df)         # 카테고리 별로 명사를 벡터화한 리스트
-
-addClusterNumber(test_df, vector_list)   # 군집 번호 열 생성
-cluster_counts_df = getClusteredArticle(test_df)      # 상위 군집 10개에 해당하는 기사 df, 군집 개수 카운트한 df
-
-summary_article = getSummaryArticle(test_df, cluster_counts_df)     # 요약한 기사 데이터 프레임 반환
-
-# print(summary_article)
-
-# insert(summary_article.values.tolist())
-
-"""

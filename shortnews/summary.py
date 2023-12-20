@@ -32,7 +32,7 @@ class Summary:
                 # summary_content = summarize(content, ratio=0.2)   # 비율
                 summary_content = summarize(content, word_count=50) # 단어 수
                 if not summary_content:     # 요약문이 비어있으면 (너무 짧아서?)
-                    summary_content = "요약 실패 : " + url
+                    summary_content = "요약 실패"
             except:
                 summary_content = content
             finally:

@@ -23,8 +23,8 @@ def insert(summary_article):
     #           values({now} || news_id_seq.nextval, :1, :2, :3, :4, :5, 0)"""
 
     # 우리 프로젝트
-    sql = f"""insert into news(news_id, cate_id, title, content, views, link)
-              values({now} || news_id_seq.nextval, :1, :2, :3, 0, :4)"""
+    sql = f"""insert into news(news_id, cate_id, title, content, imgs, link, views)
+              values({now} || news_seq.nextval, :1, :2, :3, :4, :5, 0)"""
 
     cur = conn.cursor()
     cur.executemany(sql, summary_article)

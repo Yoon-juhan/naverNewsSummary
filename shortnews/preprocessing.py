@@ -87,7 +87,7 @@ class Preprocessing:
         tfidf_matrix = tfidf_vectorizer.fit_transform(data)
         cos_similarity = cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])
 
-        # 자카드 유사도
+        # 자카드 유사도 (합집합과, 교집합 사이의 비율)
         intersection_cardinality = len(set.intersection(*[set(my), set(naver)]))
         union_cardinality = len(set.union(*[set(my), set(naver)]))
         jaccard_similarity = intersection_cardinality / float(union_cardinality)

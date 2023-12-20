@@ -1,22 +1,25 @@
 drop table news;
 
-create table news(
-news_id VARCHAR2(50) PRIMARY KEY,
-cate_id VARCHAR2(100),
-title VARCHAR2(1000),
-content CLOB,
-img VARCHAR2(1000),
-link VARCHAR2(1000),
-views NUMBER
+CREATE TABLE NEWS(
+NEWS_ID VARCHAR2(50),
+CATE_ID VARCHAR2(10),
+TITLE VARCHAR2(100),
+CONTENT VARCHAR2(1000),
+VIEWS NUMBER,
+LINK VARCHAR2(1000),
+IMGLINK VARCHAR2(1000),
+CONSTRAINT NEWS_NEWSID_PK PRIMARY KEY(NEWS_ID),
+CONSTRAINT NEWS_CATEID_FK FOREIGN KEY(CATE_ID) REFERENCES CATE (CATE_ID)
 );
 
-drop sequence news_id_seq;
+drop sequence news_seq;
 
-create sequence news_id_seq
-start with 1
+create sequence news_seq
 increment by 1
+start with 1
 maxvalue 1920
 cycle;
+
 
 select * from news
 order by to_number(news_id);
