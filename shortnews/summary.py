@@ -17,8 +17,8 @@ class Summary:
 
             category = temp_df["category"].iloc[0]          # 카테고리
             title = temp_df["title"].iloc[0]                # 일단은 첫 번째 뉴스 제목
-            # content = " ".join(temp_df["content"])           # 본문 내용 여러개를 하나의 문자열로 합쳐서 요약
-            content = temp_df["content"].iloc[0]            # 같은 군집 첫 번째 기사
+            content = " ".join(temp_df["content"])           # 본문 내용 여러개를 하나의 문자열로 합쳐서 요약
+            # content = temp_df["content"].iloc[0]            # 같은 군집 첫 번째 기사
             naver_summary = temp_df["summary"].iloc[0]
 
             try:
@@ -30,14 +30,22 @@ class Summary:
 
             try:
                 # summary_content = summarize(content, ratio=0.2)   # 비율
-                summary_content = summarize(content, word_count=50) # 단어 수
-                if not summary_content:     # 요약문이 비어있으면 (너무 짧아서?)
-                    summary_content = "요약 실패"
+                summary_content = ""
+
+                for i in range(60, 130, 10):
+                    summary_content = summarize(content, word_count=i) # 단어 수
+                    print(f"{i} = {title}")
+                    if summary_content:     # 요약 됐으면 끝
+                        break
+                else:
+                    summary_content = "XXXXXXXX" + content   # 단어수 130까지 해도 요약 안되면 본문 그대로
+
             except:
                 summary_content = content
             finally:
 
                 summary_content = re.sub('다\.', '다.\n', summary_content)
+                summary_content = re.sub('요\.', '요.\n', summary_content)
                 cos_similarity, jaccard_similarity = Preprocessing.similarity(summary_content, naver_summary)
 
                 summary_article = summary_article.append({

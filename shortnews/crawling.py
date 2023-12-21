@@ -127,7 +127,7 @@ class ContentCrawling:
                 summary_btn = True
                 print(cnt, end=", ")
             except:
-                print(cnt, "요약봇 없어", end=", ")
+                print(cnt, "요약봇 X", end=", ")
             
             cnt+=1
             
@@ -164,6 +164,8 @@ class ContentCrawling:
                 else:
                     img_list.append("x")
 
+                while c[0].find("strong"):
+                    c[0].find("strong").decompose()
                 while c[0].find(attrs={"class" : "end_photo_org"}):             # 이미지 있는 만큼
                     c[0].find(attrs={"class" : "end_photo_org"}).decompose()    # 본문 이미지에 있는 글자 없애기
 

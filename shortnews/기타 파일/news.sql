@@ -20,6 +20,5 @@ start with 1
 maxvalue 1920
 cycle;
 
-
 select * from news
 order by to_number(news_id);

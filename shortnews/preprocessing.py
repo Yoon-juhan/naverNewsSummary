@@ -20,12 +20,12 @@ class Preprocessing:
         article = re.sub('\S+@[a-z.]+','',article)          # 이메일 삭제
         article = re.sub('(\s=\s)','', article)
 
-        article = re.sub('[\n\t\u200b\xa0]','',article)
+        article = re.sub('[\t\n\u200b\xa0]','',article)
         article = re.sub('다\.', '다.\n', article)
+        article = re.sub('요\.', '요.\n', article)
         article = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',article)
         # article = re.sub('([a-zA-Z])','',article)   # 영어 삭제
-        # article = re.sub('[-=+#/\?:^$@*※~&%ㆍ!,\.』\\‘’“”|\(\)\[\]\<\>`\'…》■◆◇▶▷▲○●]','',article)   # 특수문자 삭제
-        article = re.sub('[-=+#/:^$@*※&%ㆍ!』\\‘’“”|\[\]\<\>`…》■◆◇▶▷▲○●]','',article)   # 특수문자 삭제
+        article = re.sub('[-=+#/:^$@*※&ㆍ!』\\‘’“”|\[\]\<\>`…》■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',article)   # 특수문자 삭제
 
 
         return article
