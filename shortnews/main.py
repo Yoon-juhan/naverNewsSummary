@@ -12,16 +12,20 @@ from database import insert, select
 from tts import tts
 
 def start():
-    # 링크 크롤링하는 객체 생성
+    # url 크롤링
     url_crawler = UrlCrawling()
 
-    six_url = url_crawler.getSixUrl()                          # 6개 카테고리 url
-    entertainment_url = url_crawler.getEntertainmentUrl()      # 연예 url
-    sports_url = url_crawler.getSportsUrl()                    # 스포츠 url
-    all_url = six_url + entertainment_url + sports_url        # 전체 url
-    category = url_crawler.category                            # 카테고리 리스트
+    six_url_df = url_crawler.getSixUrl()                          # 6개 카테고리 (카테고리, url 데이터프레임)
+    entertainment_url_df = url_crawler.getEntertainmentUrl()      # 연예 (카테고리, url 데이터프레임)
+    sports_url_df = url_crawler.getSportsUrl()                    # 스포츠 (카테고리, url 데이터프레임)
 
-    # 본문 크롤링하는 객체 생성
+    six_url_df, entertainment_url_df, sports_url_df = url_crawler.removeDuplicationUrl(six_url_df, entertainment_url_df, sports_url_df)   # 이미 요약한 기사 제거
+
+    # 본문 크롤링
+    six_url, entertainment_url, sports_url = list(six_url_df['six_url']), list(entertainment_url_df['entertainment_url']), list(sports_url_df['sports_url'])
+    all_url = six_url + entertainment_url + sports_url
+    category = list(six_url_df['category']) + list(entertainment_url_df['category']) + list(sports_url_df['category'])
+
     content_crawler = ContentCrawling([], [], [], [], [])
 
     content_crawler.getSixContent(six_url)
@@ -39,8 +43,8 @@ def start():
     Clustering.addClusterNumber(article_df, vector_list)                            # 군집 번호 열 생성
     cluster_counts_df = Clustering.getClusteredArticle(article_df)                  # 군집 개수 카운트한 df
 
-    summary_article = Summary.getSummaryArticle(article_df, cluster_counts_df)      # 요약한 기사 데이터 프레임 반환
-    summary_article = Preprocessing.convertCategory(summary_article)                # 카테고리이름을 번호로 변경
+    summary_article = Summary.getSummaryArticle(article_df, cluster_counts_df)              # 요약한 기사 데이터 프레임 반환
+    summary_article = Preprocessing.convertCategory(summary_article)
 
     # tts(summary_article)
     del summary_article['naver_summary']
@@ -50,7 +54,11 @@ def start():
 
 start()
 
+# n분 마다 호출  
 # schedule.every(2).minutes.do(start)
+
+# n시간마다 호출  
+# schedule.every(1).hour.do(start)
 
 # while True:
 #     schedule.run_pending()

@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import re
 import time
@@ -10,6 +10,7 @@ from pytz import timezone
 
 # 전처리 클래스
 from preprocessing import Preprocessing
+from database import select
 
 options = webdriver.ChromeOptions()
 options.add_argument('--headless')
@@ -23,11 +24,12 @@ browser = webdriver.Chrome(options=options)
 class UrlCrawling:
     def __init__(self):
         self.category_names = ["정치", "경제", "사회", "생활/문화", "세계", "IT/과학", "연예", "스포츠"]
-        self.category = []
 
     def getSixUrl(self):    # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
         six_url = []
-        for category in range(6):     # 6
+        category_list = []
+
+        for category in range(3, 4):     # 6
             a_list = []
             for page in range(1, 2):  # 1, 6
                 url = f'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1={100 + category}#&date=%2000:00:00&page={page}'
@@ -43,14 +45,18 @@ class UrlCrawling:
 
             for a in a_list:
                 six_url.append(a["href"])
-                self.category.append(self.category_names[category])
+                category_list.append(self.category_names[category])
+        
+        six_url_df = pd.DataFrame({'category' : category_list,
+                                   'six_url' : six_url})
 
-        return six_url
+        return six_url_df
 
 
     def getEntertainmentUrl(self):   # 연예
         # today = str(datetime.datetime.now(KST))[:11]  # 서울 기준 시간
         entertainment_url = []
+        category_list = []
         a_list = []
         today = datetime.date.today()
 
@@ -69,13 +75,17 @@ class UrlCrawling:
 
         for a in a_list:
             entertainment_url.append("https://entertain.naver.com" + a["href"])
-            self.category.append("연예")
+            category_list.append("연예")
 
-        return entertainment_url
+        entertainment_url_df = pd.DataFrame({'category' : category_list,
+                            'entertainment_url' : entertainment_url})
+
+        return entertainment_url_df
 
     def getSportsUrl(self):    # 스포츠  (페이지마다 개수가 달라서 6페이지를 이동)
         # today = str(datetime.datetime.now(KST))[:11].replace('-', '')  # 서울 기준 시간
         sports_url = []
+        category_list = []
         a_list = []
         today = str(datetime.date.today()).replace('-', '')
 
@@ -94,9 +104,27 @@ class UrlCrawling:
             if i == 100:  # 100개 링크 추가했으면 멈추기
                 break
             sports_url.append("https://sports.news.naver.com/news" + re.search('\?.+', a_list[i]["href"]).group())
-            self.category.append("스포츠")
+            category_list.append("스포츠")
 
-        return sports_url
+        sports_url_df = pd.DataFrame({'category' : category_list,
+                                    'sports_url' : sports_url})
+        
+        return sports_url_df
+    
+    def removeDuplicationUrl(self, six_url_df, entertainment_url_df, sports_url_df):   # 이미 요약한 기사 제거
+        db_url_df = select()    # 날짜로 검색 추가 필요
+
+        db_urls = []
+        if not db_url_df.empty:
+            db_url_df['URL'].apply(lambda x : db_urls.extend(x.split(",")))     # news 테이블 url컬럼에 있는 모든 url을 리스트로 생성
+
+            six_url_df.drop(six_url_df['six_url'][six_url_df['six_url'].apply(lambda x : x in db_urls)].index, inplace=True)
+            entertainment_url_df.drop(entertainment_url_df['entertainment_url'][entertainment_url_df['entertainment_url'].apply(lambda x : x in db_urls)].index, inplace=True)
+            sports_url_df.drop(sports_url_df['sports_url'][sports_url_df['sports_url'].apply(lambda x : x in db_urls)].index, inplace=True)
+
+        return [six_url_df, entertainment_url_df, sports_url_df]
+    
+
 
 
 
@@ -148,10 +176,10 @@ class ContentCrawling:
                         # self.summary.append(summary_content.text)
                         self.summary.append(re.sub('다\.', '다.\n', summary_content.text))
                     except:
-                        self.summary.append("x")
+                        self.summary.append("")
 
                 else:
-                    self.summary.append("x")
+                    self.summary.append("")
                 
 
                 img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
@@ -162,7 +190,7 @@ class ContentCrawling:
                         img_src_list.append(img['src'])
                     img_list.append(",".join(img_src_list))
                 else:
-                    img_list.append("x")
+                    img_list.append("")
 
                 while c[0].find("strong"):
                     c[0].find("strong").decompose()
@@ -226,7 +254,7 @@ class ContentCrawling:
                         img_src_list.append(img['src'])
                     img_list.append(",".join(img_src_list))
                 else:
-                    img_list.append("x")
+                    img_list.append("")
 
 
                 while c[0].find(attrs={"class" : "end_photo_org"}):             # 이미지 있는 만큼
@@ -252,7 +280,7 @@ class ContentCrawling:
 
         for t in title_list:
             self.title.append(Preprocessing.clean(t.text))
-            self.summary.append("x")
+            self.summary.append("")
 
         for c in content_list:
             self.content.append(Preprocessing.clean(c.text))
@@ -293,7 +321,7 @@ class ContentCrawling:
                     img_src_list.append(img['src'])
                 img_list.append(",".join(img_src_list))
             else:
-                img_list.append("x")
+                img_list.append("")
 
             while c[0].find(attrs={"class" : "end_photo_org"}):                 # 이미지 있는 만큼
                 c[0].find(attrs={"class" : "end_photo_org"}).decompose()        # 본문 이미지에 있는 글자 없애기
@@ -317,7 +345,7 @@ class ContentCrawling:
 
         for t in title_list:
             self.title.append(Preprocessing.clean(t.text))
-            self.summary.append("x")
+            self.summary.append("")
 
         for c in content_list:
             self.content.append(Preprocessing.clean(c.text))

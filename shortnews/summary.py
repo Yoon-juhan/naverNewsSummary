@@ -22,7 +22,7 @@ class Summary:
             naver_summary = temp_df["summary"].iloc[0]
 
             try:
-                img = ",".join(list(temp_df["img"]))            # 전체 이미지
+                img = ",".join(list(temp_df["img"]))            # 전체 이미지 (수정 필요)
             except:
                 img = ""
 
@@ -34,11 +34,11 @@ class Summary:
 
                 for i in range(60, 130, 10):
                     summary_content = summarize(content, word_count=i) # 단어 수
-                    print(f"{i} = {title}")
+                    
                     if summary_content:     # 요약 됐으면 끝
                         break
                 else:
-                    summary_content = "XXXXXXXX" + content   # 단어수 130까지 해도 요약 안되면 본문 그대로
+                    summary_content = "본문 그대로 : " + content   # 단어수 130까지 해도 요약 안되면 본문 그대로
 
             except:
                 summary_content = content

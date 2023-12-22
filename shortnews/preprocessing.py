@@ -51,14 +51,16 @@ class Preprocessing:
         for i in range(8):
             try:
                 text = [" ".join(noun) for noun in article_df['nouns'][article_df['category'] == category_names[i]]]    # 명사 열을 하나의 리스트에 담는다.
-
+                 
                 tfidf_vectorizer = TfidfVectorizer(min_df = 3, ngram_range=(1, 5))
                 tfidf_vectorizer.fit(text)
                 vector = tfidf_vectorizer.transform(text).toarray()                         # vector list 반환
                 vector = np.array(vector)
                 vector_list.append(vector)
             except:
-                print("크롤링 안 한 카테고리 :", category_names[i])
+                if len(article_df['category'][article_df['category'] == category_names[i]]) >= 1:
+                    article_df.drop(article_df['category'] == category_names[i].index, inplace=True)
+                print(f"{category_names[i]} 기사 수 10개 이하")
 
         return vector_list
 
