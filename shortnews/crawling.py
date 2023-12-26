@@ -29,7 +29,7 @@ class UrlCrawling:
         six_url = []
         category_list = []
 
-        for category in range(3, 4):     # 6
+        for category in range(1):     # 6
             a_list = []
             for page in range(1, 2):  # 1, 6
                 url = f'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1={100 + category}#&date=%2000:00:00&page={page}'
