@@ -1,4 +1,4 @@
-drop table news;
+delete news;
 
 CREATE TABLE NEWS(
 NEWS_ID VARCHAR2(50),

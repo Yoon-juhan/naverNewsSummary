@@ -17,9 +17,9 @@ class Summary:
             temp_df = article_df[(article_df['category'] == category_name) & (article_df['cluster_number'] == cluster_number)]
 
             category = temp_df["category"].iloc[0]          # 카테고리
-            # title = temp_df["title"].iloc[0]                # 일단은 첫 번째 뉴스 제목
-            title = " ".join(temp_df["title"])
-            content = " ".join(temp_df["content"])           # 본문 내용 여러개를 하나의 문자열로 합쳐서 요약
+            title = temp_df["title"].iloc[0]                # 일단은 첫 번째 뉴스 제목
+            # title = " ".join(temp_df["title"])
+            content = "\n".join(temp_df["content"])           # 본문 내용 여러개를 하나의 문자열로 합쳐서 요약
             # content = temp_df["content"].iloc[0]            # 같은 군집 첫 번째 기사
             naver_summary = temp_df["summary"].iloc[0]
             url = ",".join(list(temp_df["url"]))            # 전체 링크
@@ -34,13 +34,12 @@ class Summary:
             for i in temp_df['nouns']:
                 test_title.extend(i)
             test_title = " ".join(test_title)
-
-            key_model = KeyBERT('paraphrase-multilingual-MiniLM-L12-v2')  #distilbert-base-nli-mean-tokens / paraphrase-multilingual-MiniLM-L12-v2
-            result = key_model.extract_keywords(test_title, keyphrase_ngram_range=(1, 2), top_n=1)
-
+            
+            key_model = KeyBERT()
+            # key_model = KeyBERT('paraphrase-multilingual-MiniLM-L12-v2')  #distilbert-base-nli-mean-tokens / paraphrase-multilingual-MiniLM-L12-v2
+            result = key_model.extract_keywords(content, keyphrase_ngram_range=(1, 1), top_n=1)
 
             try:
-                # summary_content = summarize(content, ratio=0.2)   # 비율
                 summary_content = ""
 
                 for i in range(60, 130, 10):
@@ -54,10 +53,14 @@ class Summary:
             except:
                 summary_content =  "요약 안된 기사 내용 : " + temp_df["content"].iloc[0]
             finally:
-
+                
                 summary_content = re.sub('다\.', '다.\n', summary_content)
                 summary_content = re.sub('요\.', '요.\n', summary_content)
                 cos_similarity, jaccard_similarity = Preprocessing.similarity(summary_content, naver_summary)
+
+                # key_model = KeyBERT('paraphrase-multilingual-MiniLM-L12-v2')  #distilbert-base-nli-mean-tokens / paraphrase-multilingual-MiniLM-L12-v2
+                # result = key_model.extract_keywords(summary_content, keyphrase_ngram_range=(1, 2), top_n=1)
+
 
                 summary_article = summary_article.append({
                     "category": category,

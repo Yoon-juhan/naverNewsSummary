@@ -8,18 +8,20 @@ import numpy as np
 class Preprocessing:
 
     # 필요없는 내용 삭제 함수
-    def clean(article): 
+    def clean(article):
         article = re.sub('\w{2,4}기자','',article)
         article = re.sub('\w{2,4} 온라인 기자','',article)
         article = re.sub('\w+ 기자','',article)
         article = re.sub('\[.{1,15}\]','',article)
         article = re.sub('\w+ 기상캐스터','',article)
-        # article = re.sub('사진','',article)
+
         article = re.sub('포토','',article)
         article = re.sub('\(.*뉴스.{0,3}\)','', article)  # (~뉴스~) 삭제
         article = re.sub('\S+@[a-z.]+','',article)          # 이메일 삭제
-        article = re.sub('(\s=\s)','', article)
+        article = re.sub('\(\s=\s\)','', article)
 
+        article = re.sub('※ 우울감 등 .* 있습니다.','', article)
+        
         article = re.sub('[\t\n\u200b\xa0]','',article)
         article = re.sub('다\.', '다.\n', article)
         article = re.sub('요\.', '요.\n', article)
@@ -31,7 +33,7 @@ class Preprocessing:
         return article
 
 
-    # 본문에서 명사 뽑아내는 함수
+    # 본문에서 명사 추출하는 함수
     def getNouns(article_df):
         okt = Okt()
         nouns_list = []                               # 명사 리스트
@@ -40,8 +42,6 @@ class Preprocessing:
             nouns_list.append(okt.nouns(content))     # 명사 추출 (리스트 반환)
 
         article_df["nouns"] = nouns_list              # 데이터 프레임에 추가
-
-        return article_df
 
     # 명사를 벡터화 하는 함수
     def getVector(article_df):    # 카테고리 별로 벡터 생성
@@ -70,8 +70,6 @@ class Preprocessing:
 
         for name, num in category:
             article_df["category"][article_df["category"] == name] = num
-
-        return article_df
 
     # 영어 기사 삭제하는 함수
     def removeEnglishArticle(article_df):   

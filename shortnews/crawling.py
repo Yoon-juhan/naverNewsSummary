@@ -29,7 +29,7 @@ class UrlCrawling:
         six_url = []
         category_list = []
 
-        for category in range(1):     # 6
+        for category in range(4, 5):     # 6
             a_list = []
             for page in range(1, 2):  # 1, 6
                 url = f'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1={100 + category}#&date=%2000:00:00&page={page}'
@@ -111,7 +111,7 @@ class UrlCrawling:
         
         return sports_url_df
     
-    def removeDuplicationUrl(self, six_url_df, entertainment_url_df, sports_url_df):   # 이미 요약한 기사 제거
+    def removeUrl(self, six_url_df, entertainment_url_df, sports_url_df):   # 이미 요약한 기사제거
         db_url_df = select()    # 날짜로 검색 추가 필요
 
         db_urls = []
@@ -126,21 +126,17 @@ class UrlCrawling:
     
 
 
-
-
 # 기사 본문 크롤링
 class ContentCrawling:
-    def __init__(self, title, content, date, img, summary):
-        self.title = title
-        self.content = content
-        self.date = date
-        self.img = img
-        self.summary = summary          # 네이버 요약봇이 요약한 내용
+    def __init__(self):
+        self.title = []
+        self.content = []
+        self.img = []
+        self.summary = []          # 네이버 요약봇이 요약한 내용
 
     def getSixContent(self, url_list):  # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
         title_list = []
         content_list = []
-        date_list = []
         img_list = []
         cnt = 1
 
@@ -205,29 +201,19 @@ class ContentCrawling:
 
                 content_list.extend(c)                                          # 본문 추가
 
-                date_list.extend(soup.select("._ARTICLE_DATE_TIME"))            # 날짜 추가
-
             except IndexError:
                 print("삭제된 기사")
 
         print()
 
-        for t in title_list:
-            self.title.append(Preprocessing.clean(t.text))
-
-        for c in content_list:
-            self.content.append(Preprocessing.clean(c.text))
-
-        for d in date_list:
-            self.date.append(d.text)
-
-        for i in img_list:
-            self.img.append(i)
+        for i in range(len(title_list)):
+            self.title.append(title_list[i].text)
+            self.content.append(Preprocessing.clean(content_list[i].text))
+            self.img.append(img_list[i])
 
     def getEntertainmentContent(self, url_list):    # 연예
         title_list = []
         content_list = []
-        date_list = []
         img_list = []
         cnt = 1
 
@@ -271,30 +257,21 @@ class ContentCrawling:
 
                 content_list.extend(c)                                          # 본문 추가
 
-                date_list.extend(soup.select_one(".author em"))                 # 날짜 추가
-
             except IndexError:
                 print("삭제된 기사")
 
         print()
 
-        for t in title_list:
-            self.title.append(Preprocessing.clean(t.text))
+        for i in range(len(title_list)):
+            self.title.append(title_list[i].text)
+            self.content.append(Preprocessing.clean(content_list[i].text))
+            self.img.append(img_list[i])
             self.summary.append("")
 
-        for c in content_list:
-            self.content.append(Preprocessing.clean(c.text))
-
-        for d in date_list:
-            self.date.append(d.text)
-            
-        for i in img_list:
-            self.img.append(i)
 
     def getSportsContent(self, url_list):   # 스포츠
         title_list = []
         content_list = []
-        date_list = []
         img_list = []
         cnt = 1
 
@@ -341,26 +318,16 @@ class ContentCrawling:
 
             content_list.extend(c)                                        # 본문 추가
 
-            date_list.extend(soup.select_one(".info span"))               # 날짜 추가
-
-        for t in title_list:
-            self.title.append(Preprocessing.clean(t.text))
+        for i in range(len(title_list)):
+            self.title.append(title_list[i].text)
+            self.content.append(Preprocessing.clean(content_list[i].text))
+            self.img.append(img_list[i])
             self.summary.append("")
 
-        for c in content_list:
-            self.content.append(Preprocessing.clean(c.text))
-
-        for d in date_list:
-            d = (d.text)[5:]
-            self.date.append(d)
-
-        for i in img_list:
-            self.img.append(i)
 
     def makeDataFrame(self, all_url, category):    # 수집한 데이터를 데이터프레임으로 변환
 
         article_df = pd.DataFrame({"category" : category,
-                                   "date" : self.date,
                                    "title" : self.title,
                                    "content" : self.content,
                                    "img" : self.img,
