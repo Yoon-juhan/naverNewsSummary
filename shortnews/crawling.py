@@ -10,7 +10,7 @@ from pytz import timezone
 
 # 전처리 클래스
 from preprocessing import Preprocessing
-from database import select
+from database import selectToDay
 
 options = webdriver.ChromeOptions()
 options.add_argument('--headless')
@@ -29,7 +29,7 @@ class UrlCrawling:
         six_url = []
         category_list = []
 
-        for category in range(4, 5):     # 6
+        for category in range(5, 6):     # 6
             a_list = []
             for page in range(1, 2):  # 1, 6
                 url = f'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1={100 + category}#&date=%2000:00:00&page={page}'
@@ -111,20 +111,6 @@ class UrlCrawling:
         
         return sports_url_df
     
-    def removeUrl(self, six_url_df, entertainment_url_df, sports_url_df):   # 이미 요약한 기사제거
-        db_url_df = select()    # 날짜로 검색 추가 필요
-
-        db_urls = []
-        if not db_url_df.empty:
-            db_url_df['URL'].apply(lambda x : db_urls.extend(x.split(",")))     # news 테이블 url컬럼에 있는 모든 url을 리스트로 생성
-
-            six_url_df.drop(six_url_df['six_url'][six_url_df['six_url'].apply(lambda x : x in db_urls)].index, inplace=True)
-            entertainment_url_df.drop(entertainment_url_df['entertainment_url'][entertainment_url_df['entertainment_url'].apply(lambda x : x in db_urls)].index, inplace=True)
-            sports_url_df.drop(sports_url_df['sports_url'][sports_url_df['sports_url'].apply(lambda x : x in db_urls)].index, inplace=True)
-
-        return [six_url_df, entertainment_url_df, sports_url_df]
-    
-
 
 # 기사 본문 크롤링
 class ContentCrawling:
@@ -285,38 +271,42 @@ class ContentCrawling:
 
             print(cnt, end=", ")
             cnt+=1
+            try:
+                title_list.extend(soup.select(".news_headline .title"))             # 제목 추가 
 
-            title_list.extend(soup.select(".news_headline .title"))             # 제목 추가 
+                c = soup.find_all(attrs={"class" : "news_end"})                     # 본문 가져오기
 
-            c = soup.find_all(attrs={"class" : "news_end"})                     # 본문 가져오기
+                img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
 
-            img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
+                if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
+                    img_src_list = []
+                    for img in img_tag:
+                        img_src_list.append(img['src'])
+                    img_list.append(",".join(img_src_list))
+                else:
+                    img_list.append("")
 
-            if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
-                img_src_list = []
-                for img in img_tag:
-                    img_src_list.append(img['src'])
-                img_list.append(",".join(img_src_list))
-            else:
-                img_list.append("")
+                while c[0].find(attrs={"class" : "end_photo_org"}):                 # 이미지 있는 만큼
+                    c[0].find(attrs={"class" : "end_photo_org"}).decompose()        # 본문 이미지에 있는 글자 없애기
 
-            while c[0].find(attrs={"class" : "end_photo_org"}):                 # 이미지 있는 만큼
-                c[0].find(attrs={"class" : "end_photo_org"}).decompose()        # 본문 이미지에 있는 글자 없애기
+                while c[0].find(attrs={"class" : "image"}):
+                    c[0].find(attrs={"class" : "image"}).decompose()
 
-            while c[0].find(attrs={"class" : "image"}):
-                c[0].find(attrs={"class" : "image"}).decompose()
+                while c[0].find(attrs={"class" : "vod_area"}):                      # 영상 있는 만큼
+                    c[0].find(attrs={"class" : "vod_area"}).decompose()             # 본문 영상 없애기
 
-            while c[0].find(attrs={"class" : "vod_area"}):                      # 영상 있는 만큼
-                c[0].find(attrs={"class" : "vod_area"}).decompose()             # 본문 영상 없애기
+                if c[0].find(attrs={"class" : "source"}): c[0].find(attrs={"class" : "source"}).decompose()
+                if c[0].find(attrs={"class" : "byline"}): c[0].find(attrs={"class" : "byline"}).decompose()
+                if c[0].find(attrs={"class" : "reporter_area"}): c[0].find(attrs={"class" : "reporter_area"}).decompose()
+                if c[0].find(attrs={"class" : "copyright"}): c[0].find(attrs={"class" : "copyright"}).decompose()
+                if c[0].find(attrs={"class" : "categorize"}): c[0].find(attrs={"class" : "categorize"}).decompose()
+                if c[0].find(attrs={"class" : "promotion"}): c[0].find(attrs={"class" : "promotion"}).decompose()
 
-            if c[0].find(attrs={"class" : "source"}): c[0].find(attrs={"class" : "source"}).decompose()
-            if c[0].find(attrs={"class" : "byline"}): c[0].find(attrs={"class" : "byline"}).decompose()
-            if c[0].find(attrs={"class" : "reporter_area"}): c[0].find(attrs={"class" : "reporter_area"}).decompose()
-            if c[0].find(attrs={"class" : "copyright"}): c[0].find(attrs={"class" : "copyright"}).decompose()
-            if c[0].find(attrs={"class" : "categorize"}): c[0].find(attrs={"class" : "categorize"}).decompose()
-            if c[0].find(attrs={"class" : "promotion"}): c[0].find(attrs={"class" : "promotion"}).decompose()
-
-            content_list.extend(c)                                        # 본문 추가
+                content_list.extend(c)                                        # 본문 추가
+            except IndexError:
+                print("삭제된 기사")
+        
+        print()
 
         for i in range(len(title_list)):
             self.title.append(title_list[i].text)
@@ -327,11 +317,11 @@ class ContentCrawling:
 
     def makeDataFrame(self, all_url, category):    # 수집한 데이터를 데이터프레임으로 변환
 
-        article_df = pd.DataFrame({"category" : category,
+        news_df = pd.DataFrame({"category" : category,
                                    "title" : self.title,
                                    "content" : self.content,
                                    "img" : self.img,
                                    "url" : all_url,
                                    "summary" : self.summary})
 
-        return article_df
+        return news_df

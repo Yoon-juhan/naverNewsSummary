@@ -8,49 +8,48 @@ import numpy as np
 class Preprocessing:
 
     # 필요없는 내용 삭제 함수
-    def clean(article):
-        article = re.sub('\w{2,4}기자','',article)
-        article = re.sub('\w{2,4} 온라인 기자','',article)
-        article = re.sub('\w+ 기자','',article)
-        article = re.sub('\[.{1,15}\]','',article)
-        article = re.sub('\w+ 기상캐스터','',article)
+    def clean(text):
+        text = re.sub('\w{2,4}기자','',text)
+        text = re.sub('\w{2,4} 온라인 기자','',text)
+        text = re.sub('\w+ 기자','',text)
+        text = re.sub('\[.{1,15}\]','',text)
+        text = re.sub('\w+ 기상캐스터','',text)
 
-        article = re.sub('포토','',article)
-        article = re.sub('\(.*뉴스.{0,3}\)','', article)  # (~뉴스~) 삭제
-        article = re.sub('\S+@[a-z.]+','',article)          # 이메일 삭제
-        article = re.sub('\(\s=\s\)','', article)
+        text = re.sub('포토','',text)
+        text = re.sub('\(.*뉴스.{0,3}\)','', text)  # (~뉴스~) 삭제
+        text = re.sub('\S+@[a-z.]+','',text)          # 이메일 삭제
+        text = re.sub('(\s=\s)','', text)
 
-        article = re.sub('※ 우울감 등 .* 있습니다.','', article)
+        text = re.sub('※ 우울감 등 .* 있습니다.','', text)
         
-        article = re.sub('[\t\n\u200b\xa0]','',article)
-        article = re.sub('다\.', '다.\n', article)
-        article = re.sub('요\.', '요.\n', article)
-        article = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',article)
-        # article = re.sub('([a-zA-Z])','',article)   # 영어 삭제
-        article = re.sub('[-=+#/:^$@*※&ㆍ!』\\‘’“”|\[\]\<\>`…》■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',article)   # 특수문자 삭제
+        text = re.sub('[\t\n\u200b\xa0]','',text)
+        text = re.sub('다\.', '다.\n', text)
+        text = re.sub('요\.', '요.\n', text)
+        text = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',text)
+        # text = re.sub('([a-zA-Z])','',text)   # 영어 삭제
+        text = re.sub('[-=+#/:^$@*※&ㆍ!』\\‘’“”|\[\]\<\>`…》■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',text)   # 특수문자 삭제
+
+        return text
 
 
-        return article
-
-
-    # 본문에서 명사 추출하는 함수
-    def getNouns(article_df):
+    # 본문 명사 추출 함수
+    def getNouns(news_df):
         okt = Okt()
         nouns_list = []                               # 명사 리스트
 
-        for content in article_df["content"]:
+        for content in news_df["content"]:
             nouns_list.append(okt.nouns(content))     # 명사 추출 (리스트 반환)
 
-        article_df["nouns"] = nouns_list              # 데이터 프레임에 추가
+        news_df["nouns"] = nouns_list              # 데이터 프레임에 추가
 
-    # 명사를 벡터화 하는 함수
-    def getVector(article_df):    # 카테고리 별로 벡터 생성
+    # 명사 벡터화 함수
+    def getVector(news_df):    # 카테고리 별로 벡터 생성
         category_names = ["정치", "경제", "사회", "생활/문화", "세계", "IT/과학", "연예", "스포츠"]
         vector_list = []
 
         for i in range(8):
             try:
-                text = [" ".join(noun) for noun in article_df['nouns'][article_df['category'] == category_names[i]]]    # 명사 열을 하나의 리스트에 담는다.
+                text = [" ".join(noun) for noun in news_df['nouns'][news_df['category'] == category_names[i]]]    # 명사 열을 하나의 리스트에 담는다.
                  
                 tfidf_vectorizer = TfidfVectorizer(min_df = 3, ngram_range=(1, 5))
                 tfidf_vectorizer.fit(text)
@@ -58,38 +57,31 @@ class Preprocessing:
                 vector = np.array(vector)
                 vector_list.append(vector)
             except:
-                if len(article_df['category'][article_df['category'] == category_names[i]]) >= 1:
-                    article_df.drop(article_df['category'] == category_names[i].index, inplace=True)
+                if len(news_df['category'][news_df['category'] == category_names[i]]) >= 1:
+                    news_df.drop(news_df['category'] == category_names[i].index, inplace=True)
                 print(f"{category_names[i]} 기사 수 10개 이하")
 
         return vector_list
 
-    # 이름으로된 카테고리를 번호로 변환하는 함수
-    def convertCategory(article_df):    
+    # 카테고리 번호 변환 함수 (정치 -> 100)
+    def convertCategory(news_df):    
         category = [("정치", "100"), ("경제", "101"), ("사회", "102"), ("생활/문화", "103"), ("세계", "104"), ("IT/과학", "105"), ("연예", "106"), ("스포츠", "107")]
 
         for name, num in category:
-            article_df["category"][article_df["category"] == name] = num
+            news_df["category"][news_df["category"] == name] = num
 
-    # 영어 기사 삭제하는 함수
-    def removeEnglishArticle(article_df):   
-        index = article_df[article_df["nouns"].apply(len) <= 5].index
-
-        if len(index) >= 1:                        # 삭제할 기사 있으면 삭제
-            article_df.drop(index, inplace=True)
-
-    # 요약 유사도 검사 함수
-    def similarity(my, naver):
+    # 요약 유사도 함수
+    def similarity(x, y):
 
         # 코사인 유사도
-        data = (my, naver)
+        data = (x, y)
         tfidf_vectorizer = TfidfVectorizer()
         tfidf_matrix = tfidf_vectorizer.fit_transform(data)
         cos_similarity = cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])
 
         # 자카드 유사도 (합집합과, 교집합 사이의 비율)
-        intersection_cardinality = len(set.intersection(*[set(my), set(naver)]))
-        union_cardinality = len(set.union(*[set(my), set(naver)]))
+        intersection_cardinality = len(set.intersection(*[set(x), set(y)]))
+        union_cardinality = len(set.union(*[set(x), set(y)]))
         jaccard_similarity = intersection_cardinality / float(union_cardinality)
 
-        return [cos_similarity, jaccard_similarity]
+        return [round(cos_similarity[0][0] * 100, 2), round(jaccard_similarity * 100, 2)]

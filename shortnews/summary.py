@@ -8,13 +8,13 @@ from keybert import KeyBERT
 # 요약 클래스
 class Summary:
 
-    def getSummaryArticle(article_df, cluster_counts_df):
-        summary_article = pd.DataFrame(columns=["category", "title", "content", "img", "url", "test_title"])
+    def getSummaryArticle(news_df, cluster_counts_df):
+        summary_news = pd.DataFrame(columns=["category", "title", "content", "img", "url", "test_title"])
 
         for i in range(len(cluster_counts_df)):
             category_name, cluster_number = cluster_counts_df.iloc[i, 0:2]    # 카테고리 이름, 군집 번호
 
-            temp_df = article_df[(article_df['category'] == category_name) & (article_df['cluster_number'] == cluster_number)]
+            temp_df = news_df[(news_df['category'] == category_name) & (news_df['cluster_number'] == cluster_number)]
 
             category = temp_df["category"].iloc[0]          # 카테고리
             title = temp_df["title"].iloc[0]                # 일단은 첫 번째 뉴스 제목
@@ -36,7 +36,6 @@ class Summary:
             test_title = " ".join(test_title)
             
             key_model = KeyBERT()
-            # key_model = KeyBERT('paraphrase-multilingual-MiniLM-L12-v2')  #distilbert-base-nli-mean-tokens / paraphrase-multilingual-MiniLM-L12-v2
             result = key_model.extract_keywords(content, keyphrase_ngram_range=(1, 1), top_n=1)
 
             try:
@@ -61,16 +60,15 @@ class Summary:
                 # key_model = KeyBERT('paraphrase-multilingual-MiniLM-L12-v2')  #distilbert-base-nli-mean-tokens / paraphrase-multilingual-MiniLM-L12-v2
                 # result = key_model.extract_keywords(summary_content, keyphrase_ngram_range=(1, 2), top_n=1)
 
-
-                summary_article = summary_article.append({
-                    "category": category,
-                    "title": title,
-                    "content": summary_content,
-                    "naver_summary": naver_summary,
-                    "similarity" : f"(코사인 유사도 : {round(cos_similarity[0][0] * 100, 2)}%) (자카드 유사도 : {round(jaccard_similarity * 100, 2)}%)",
-                    "img": img,
-                    "url": url,
-                    "test_title": result
+                summary_news = summary_news.append({
+                    "category" : category,
+                    "title" : title,
+                    "content" : summary_content,
+                    "naver_summary" : naver_summary,
+                    "similarity" : f"(코사인 유사도 : {cos_similarity}%) (자카드 유사도 : {jaccard_similarity}%)",
+                    "img" : img,
+                    "url" : url,
+                    "test_title" : result
                 }, ignore_index=True)
 
-        return summary_article
+        return summary_news
