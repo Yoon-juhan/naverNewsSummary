@@ -16,6 +16,7 @@ options = webdriver.ChromeOptions()
 options.add_argument('--headless')
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
+options.add_argument('--log-level=3')  # 로그 레벨을 "INFO" 이상의 레벨로 설정
 browser = webdriver.Chrome(options=options)
 # ------------------------------------------- 준비 ------------------------------------------- #
 
@@ -29,7 +30,7 @@ class UrlCrawling:
         six_url = []
         category_list = []
 
-        for category in range(5, 6):     # 6
+        for category in range(6):     # 6
             a_list = []
             for page in range(1, 2):  # 1, 6
                 url = f'https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1={100 + category}#&date=%2000:00:00&page={page}'
@@ -137,7 +138,7 @@ class ContentCrawling:
                 summary_btn = True
                 print(cnt, end=", ")
             except:
-                print(cnt, "요약봇 X", end=", ")
+                print(cnt, end=", ")
             
             cnt+=1
             

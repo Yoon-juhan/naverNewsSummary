@@ -57,8 +57,10 @@ class Preprocessing:
                 vector = np.array(vector)
                 vector_list.append(vector)
             except:
-                if len(news_df['category'][news_df['category'] == category_names[i]]) >= 1:
-                    news_df.drop(news_df['category'] == category_names[i].index, inplace=True)
+                index = news_df[news_df['category'] == category_names[i]].index
+                news_df.drop(index, inplace=True)
+                # if len(news_df['category'][news_df['category'] == category_names[i]]) >= 1:
+                #     news_df.drop(news_df['category'] == category_names[i].index, inplace=True)
                 print(f"{category_names[i]} 기사 수 10개 이하")
 
         return vector_list

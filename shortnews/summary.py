@@ -3,6 +3,7 @@ from preprocessing import Preprocessing
 import pandas as pd
 import re
 from keybert import KeyBERT
+from konlpy.tag import Okt
 # from summa.summarizer import summarize
 
 # 요약 클래스
@@ -10,7 +11,8 @@ class Summary:
 
     def getSummaryArticle(news_df, cluster_counts_df):
         summary_news = pd.DataFrame(columns=["category", "title", "content", "img", "url", "test_title"])
-
+        okt = Okt()
+        # key_model = KeyBERT()
         for i in range(len(cluster_counts_df)):
             category_name, cluster_number = cluster_counts_df.iloc[i, 0:2]    # 카테고리 이름, 군집 번호
 
@@ -34,9 +36,10 @@ class Summary:
             for i in temp_df['nouns']:
                 test_title.extend(i)
             test_title = " ".join(test_title)
+
+            # result = key_model.extract_keywords(content, keyphrase_ngram_range=(1, 1), top_n=1)
             
-            key_model = KeyBERT()
-            result = key_model.extract_keywords(content, keyphrase_ngram_range=(1, 1), top_n=1)
+            result = okt.phrases(title)
 
             try:
                 summary_content = ""
@@ -47,17 +50,18 @@ class Summary:
                     if summary_content:     # 요약 됐으면 끝
                         break
                 else:
-                    summary_content = "요약 안된 기사 내용 : " + temp_df["content"].iloc[0]    # 단어수 130까지 해도 요약 안되면 본문 그대로
+                    # summary_content = "요약 안된 기사 내용 : " + temp_df["content"].iloc[0]    # 단어수 130까지 해도 요약 안되면 본문 그대로
+                    summary_content = "XXXXXXXXXX else XXXXXXXXXX"
 
             except:
-                summary_content =  "요약 안된 기사 내용 : " + temp_df["content"].iloc[0]
+                # summary_content =  "요약 안된 기사 내용 : " + temp_df["content"].iloc[0]
+                summary_content = "XXXXXXXXXX except XXXXXXXXXX"
             finally:
                 
                 summary_content = re.sub('다\.', '다.\n', summary_content)
                 summary_content = re.sub('요\.', '요.\n', summary_content)
                 cos_similarity, jaccard_similarity = Preprocessing.similarity(summary_content, naver_summary)
 
-                # key_model = KeyBERT('paraphrase-multilingual-MiniLM-L12-v2')  #distilbert-base-nli-mean-tokens / paraphrase-multilingual-MiniLM-L12-v2
                 # result = key_model.extract_keywords(summary_content, keyphrase_ngram_range=(1, 2), top_n=1)
 
                 summary_news = summary_news.append({

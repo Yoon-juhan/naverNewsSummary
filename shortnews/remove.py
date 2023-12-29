@@ -1,6 +1,7 @@
 from database import selectToDay
 from preprocessing import Preprocessing
 
+
 class Remove():
     # 이미 요약한 기사제거
     def duplication(six_url_df, entertainment_url_df, sports_url_df):   
@@ -14,7 +15,6 @@ class Remove():
             entertainment_url_df.drop(entertainment_url_df['entertainment_url'][entertainment_url_df['entertainment_url'].apply(lambda x : x in db_urls)].index, inplace=True)
             sports_url_df.drop(sports_url_df['sports_url'][sports_url_df['sports_url'].apply(lambda x : x in db_urls)].index, inplace=True)
 
-        return [six_url_df, entertainment_url_df, sports_url_df]
 
     # 영어 기사 삭제 함수
     def englishNews(news_df):   

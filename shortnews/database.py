@@ -8,17 +8,21 @@ pw = "snews"
 url = "13.209.75.71:1521/xe"
 
 # 기사 삽입
-def insert(summary_article):
+def insert(summary_news):
     conn = cx.connect(id, pw, url)
 
     now = datetime.datetime.now()
     now = str(now.year) + str(now.month) + str(now.day) + str(now.hour)
 
+    del summary_news['naver_summary']
+    del summary_news['similarity']
+    del summary_news['test_title']
+
     sql = f"""insert into news(news_id, cate_id, title, content, imgs, url, views)
               values({now} || news_seq.nextval, :1, :2, :3, :4, :5, 0)"""
 
     cur = conn.cursor()
-    cur.executemany(sql, summary_article)
+    cur.executemany(sql, summary_news.values.tolist())
     
     print("insert 성공")
 
