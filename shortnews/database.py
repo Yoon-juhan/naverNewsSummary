@@ -16,7 +16,6 @@ def insert(summary_news):
 
     del summary_news['naver_summary']
     del summary_news['similarity']
-    del summary_news['test_title']
 
     sql = f"""insert into news(news_id, cate_id, title, content, imgs, url, views)
               values({now} || news_seq.nextval, :1, :2, :3, :4, :5, 0)"""

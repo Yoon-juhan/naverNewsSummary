@@ -2,16 +2,14 @@ from gensim.summarization.summarizer import summarize
 from preprocessing import Preprocessing
 import pandas as pd
 import re
-from keybert import KeyBERT
-from konlpy.tag import Okt
 # from summa.summarizer import summarize
 
 # 요약 클래스
 class Summary:
 
     def getSummaryArticle(news_df, cluster_counts_df):
-        summary_news = pd.DataFrame(columns=["category", "title", "content", "img", "url", "test_title"])
-        okt = Okt()
+        summary_news = pd.DataFrame(columns=["category", "title", "content", "img", "url"])
+
         # key_model = KeyBERT()
         for i in range(len(cluster_counts_df)):
             category_name, cluster_number = cluster_counts_df.iloc[i, 0:2]    # 카테고리 이름, 군집 번호
@@ -19,9 +17,12 @@ class Summary:
             temp_df = news_df[(news_df['category'] == category_name) & (news_df['cluster_number'] == cluster_number)]
 
             category = temp_df["category"].iloc[0]          # 카테고리
-            title = temp_df["title"].iloc[0]                # 일단은 첫 번째 뉴스 제목
+            title = Preprocessing.cleanTitle(temp_df["title"].iloc[0])      # 첫 번째 뉴스 제목
             # title = " ".join(temp_df["title"])
+
             content = "\n".join(temp_df["content"])           # 본문 내용 여러개를 하나의 문자열로 합쳐서 요약
+
+
             # content = temp_df["content"].iloc[0]            # 같은 군집 첫 번째 기사
             naver_summary = temp_df["summary"].iloc[0]
             url = ",".join(list(temp_df["url"]))            # 전체 링크
@@ -36,11 +37,7 @@ class Summary:
             for i in temp_df['nouns']:
                 test_title.extend(i)
             test_title = " ".join(test_title)
-
-            # result = key_model.extract_keywords(content, keyphrase_ngram_range=(1, 1), top_n=1)
             
-            result = okt.phrases(title)
-
             try:
                 summary_content = ""
 
@@ -62,8 +59,6 @@ class Summary:
                 summary_content = re.sub('요\.', '요.\n', summary_content)
                 cos_similarity, jaccard_similarity = Preprocessing.similarity(summary_content, naver_summary)
 
-                # result = key_model.extract_keywords(summary_content, keyphrase_ngram_range=(1, 2), top_n=1)
-
                 summary_news = summary_news.append({
                     "category" : category,
                     "title" : title,
@@ -71,8 +66,7 @@ class Summary:
                     "naver_summary" : naver_summary,
                     "similarity" : f"(코사인 유사도 : {cos_similarity}%) (자카드 유사도 : {jaccard_similarity}%)",
                     "img" : img,
-                    "url" : url,
-                    "test_title" : result
+                    "url" : url
                 }, ignore_index=True)
 
         return summary_news

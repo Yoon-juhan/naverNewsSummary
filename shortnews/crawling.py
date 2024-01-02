@@ -152,11 +152,9 @@ class ContentCrawling:
                 c = soup.find_all(attrs={"id" : "dic_area"})                    # 본문 가져오기
 
                 if summary_btn:
-                    # summary_content = soup.select("._SUMMARY_CONTENT_BODY")
                     summary_content = soup.find(attrs={"class" : "_SUMMARY_CONTENT_BODY"})
                     try:
                         summary_content.find("strong").decompose()
-                        # self.summary.append(summary_content.text)
                         self.summary.append(re.sub('다\.', '다.\n', summary_content.text))
                     except:
                         self.summary.append("")
@@ -195,7 +193,7 @@ class ContentCrawling:
 
         for i in range(len(title_list)):
             self.title.append(title_list[i].text)
-            self.content.append(Preprocessing.clean(content_list[i].text))
+            self.content.append(re.findall('[^\.\n]*\.', content_list[i].text))
             self.img.append(img_list[i])
 
     def getEntertainmentContent(self, url_list):    # 연예
@@ -251,7 +249,7 @@ class ContentCrawling:
 
         for i in range(len(title_list)):
             self.title.append(title_list[i].text)
-            self.content.append(Preprocessing.clean(content_list[i].text))
+            self.content.append(re.findall('[^\.\n]*\.', content_list[i].text))
             self.img.append(img_list[i])
             self.summary.append("")
 
@@ -311,7 +309,7 @@ class ContentCrawling:
 
         for i in range(len(title_list)):
             self.title.append(title_list[i].text)
-            self.content.append(Preprocessing.clean(content_list[i].text))
+            self.content.append(re.findall('[^\.\n]*\.', content_list[i].text))
             self.img.append(img_list[i])
             self.summary.append("")
 

@@ -8,26 +8,45 @@ import numpy as np
 class Preprocessing:
 
     # 필요없는 내용 삭제 함수
-    def clean(text):
-        text = re.sub('\w{2,4}기자','',text)
-        text = re.sub('\w{2,4} 온라인 기자','',text)
-        text = re.sub('\w+ 기자','',text)
-        text = re.sub('\[.{1,15}\]','',text)
-        text = re.sub('\w+ 기상캐스터','',text)
+    def clean(text_list):    # .으로 마치는 문장들을 리스트로 받음
+        result = []
 
-        text = re.sub('포토','',text)
-        text = re.sub('\(.*뉴스.{0,3}\)','', text)  # (~뉴스~) 삭제
-        text = re.sub('\S+@[a-z.]+','',text)          # 이메일 삭제
-        text = re.sub('(\s=\s)','', text)
+        for i in range(len(text_list)):
+            text = text_list[i]
 
-        text = re.sub('※ 우울감 등 .* 있습니다.','', text)
-        
-        text = re.sub('[\t\n\u200b\xa0]','',text)
-        text = re.sub('다\.', '다.\n', text)
-        text = re.sub('요\.', '요.\n', text)
+            text = re.sub('\([^)]*기자*\)', '', text)
+            text = re.sub('\w{2,4}기자','',text)
+            text = re.sub('\w{2,4} 온라인 기자','',text)
+            text = re.sub('\[.{1,15}\]','',text)
+            text = re.sub('\w+ 기상캐스터','',text)
+            text = re.sub('\([^)]*\)', '', text)
+            text = re.sub('포토','',text)
+            text = re.sub('\(.*뉴스.{0,3}\)','', text)  # (~뉴스~) 삭제
+            text = re.sub('\S+@[a-z.]+','',text)          # 이메일 삭제
+            text = re.sub('(\s=\s)','', text)
+
+            text = re.sub('※ 우울감 등 .* 있습니다.','', text)
+            
+            text = re.sub('[\t\n\u200b\xa0]','',text)
+            # text = re.sub('다\.', '다.\n', text)
+            # text = re.sub('요\.', '요.\n', text)
+            text = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',text)
+            # text = re.sub('([a-zA-Z])','',text)   # 영어 삭제
+            text = re.sub('[-=+#/:^$@*※&ㆍ!』\\|\[\]\<\>`…》■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',text)   # 특수문자 삭제
+
+            result.append(text)
+            
+        return "\n".join(result)
+    
+    def cleanTitle(text):
+        text = re.sub('\[.+\]','',text)
+        text = re.sub('\(.+\)','',text)
         text = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',text)
-        # text = re.sub('([a-zA-Z])','',text)   # 영어 삭제
-        text = re.sub('[-=+#/:^$@*※&ㆍ!』\\‘’“”|\[\]\<\>`…》■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',text)   # 특수문자 삭제
+        text = re.sub('\.{3}',' ',text)
+        text = re.sub('…',' ',text)
+        text = re.sub('\·{3}',' ',text)
+        
+        text = re.sub('[-=+#/:^$@*※&ㆍ!』\\‘’“”|\[\]\<\>`》\(\)■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',text)   # 특수문자 삭제
 
         return text
 
@@ -59,8 +78,6 @@ class Preprocessing:
             except:
                 index = news_df[news_df['category'] == category_names[i]].index
                 news_df.drop(index, inplace=True)
-                # if len(news_df['category'][news_df['category'] == category_names[i]]) >= 1:
-                #     news_df.drop(news_df['category'] == category_names[i].index, inplace=True)
                 print(f"{category_names[i]} 기사 수 10개 이하")
 
         return vector_list
