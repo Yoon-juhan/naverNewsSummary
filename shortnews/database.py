@@ -12,13 +12,13 @@ def insert(summary_news):
     conn = cx.connect(id, pw, url)
 
     now = datetime.datetime.now()
-    now = str(now.year) + str(now.month) + str(now.day) + str(now.hour)
+    now = str(now.year) + str(now.month).zfill(2) + str(now.day).zfill(2) + str(now.hour).zfill(2)
 
     del summary_news['naver_summary']
     del summary_news['similarity']
 
-    sql = f"""insert into news(news_id, cate_id, title, content, imgs, url, views)
-              values({now} || news_seq.nextval, :1, :2, :3, :4, :5, 0)"""
+    sql = f"""insert into news(news_id, cate_id, title, content, imgs, url, keyword, views)
+              values({now} || news_seq.nextval, :1, :2, :3, :4, :5, :6, 0)"""
 
     cur = conn.cursor()
     cur.executemany(sql, summary_news.values.tolist())
@@ -52,7 +52,7 @@ def selectToDay():
     conn = cx.connect(id, pw, url)
 
     now = datetime.datetime.now()
-    now = str(now.year) + str(now.month) + str(now.day)
+    now = str(now.year) + str(now.month).zfill(2) + str(now.day).zfill(2)
 
     sql = f"""select * from news
              where news_id like '{now}%'"""

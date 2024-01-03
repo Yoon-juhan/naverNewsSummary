@@ -2,42 +2,44 @@ from gensim.summarization.summarizer import summarize
 from preprocessing import Preprocessing
 import pandas as pd
 import re
+from konlpy.tag import Okt
 # from summa.summarizer import summarize
 
 # 요약 클래스
 class Summary:
 
     def getSummaryArticle(news_df, cluster_counts_df):
-        summary_news = pd.DataFrame(columns=["category", "title", "content", "img", "url"])
+        summary_news = pd.DataFrame(columns=["category", "title", "content", "img", "url", "keyword"])
 
-        # key_model = KeyBERT()
         for i in range(len(cluster_counts_df)):
             category_name, cluster_number = cluster_counts_df.iloc[i, 0:2]    # 카테고리 이름, 군집 번호
 
+            # 군집내 기사들 df
             temp_df = news_df[(news_df['category'] == category_name) & (news_df['cluster_number'] == cluster_number)]
 
-            category = temp_df["category"].iloc[0]          # 카테고리
-            title = Preprocessing.cleanTitle(temp_df["title"].iloc[0])      # 첫 번째 뉴스 제목
-            # title = " ".join(temp_df["title"])
+            # 카테고리
+            category = temp_df["category"].iloc[0]
 
-            content = "\n".join(temp_df["content"])           # 본문 내용 여러개를 하나의 문자열로 합쳐서 요약
+            # 첫 번째 뉴스 제목
+            title = Preprocessing.cleanTitle(temp_df["title"].iloc[0])
 
+            # 본문
+            content = "\n".join(temp_df["content"])
 
-            # content = temp_df["content"].iloc[0]            # 같은 군집 첫 번째 기사
-            naver_summary = temp_df["summary"].iloc[0]
-            url = ",".join(list(temp_df["url"]))            # 전체 링크
+            # 링크
+            url = ",".join(list(temp_df["url"]))
+
+            # 이미지
             img = list(temp_df["img"])
-            
             if any(img):
-                img = ",".join(list(temp_df["img"]))            # 전체 이미지 (수정 필요)
+                img = ",".join(list(temp_df["img"]))        
             else:
                 img = ""
 
-            test_title = []
-            for i in temp_df['nouns']:
-                test_title.extend(i)
-            test_title = " ".join(test_title)
+            # 네이버 요약 봇
+            naver_summary = temp_df["summary"].iloc[0]
             
+            # 본문 요약
             try:
                 summary_content = ""
 
@@ -57,8 +59,19 @@ class Summary:
                 
                 summary_content = re.sub('다\.', '다.\n', summary_content)
                 summary_content = re.sub('요\.', '요.\n', summary_content)
+
+                # 유사도
                 cos_similarity, jaccard_similarity = Preprocessing.similarity(summary_content, naver_summary)
 
+                # 키워드
+                okt = Okt()
+                nouns = []
+
+                for n in okt.nouns(summary_content):
+                    if len(n) >= 2:
+                        nouns.append(n)
+
+                # 데이터프레임 생성
                 summary_news = summary_news.append({
                     "category" : category,
                     "title" : title,
@@ -66,7 +79,8 @@ class Summary:
                     "naver_summary" : naver_summary,
                     "similarity" : f"(코사인 유사도 : {cos_similarity}%) (자카드 유사도 : {jaccard_similarity}%)",
                     "img" : img,
-                    "url" : url
+                    "url" : url,
+                    "keyword" : ",".join(nouns)
                 }, ignore_index=True)
 
         return summary_news

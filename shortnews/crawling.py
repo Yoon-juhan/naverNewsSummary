@@ -193,7 +193,7 @@ class ContentCrawling:
 
         for i in range(len(title_list)):
             self.title.append(title_list[i].text)
-            self.content.append(re.findall('[^\.\n]*\.', content_list[i].text))
+            self.content.append(Preprocessing.clean(content_list[i].text))
             self.img.append(img_list[i])
 
     def getEntertainmentContent(self, url_list):    # 연예
@@ -227,7 +227,8 @@ class ContentCrawling:
                 else:
                     img_list.append("")
 
-
+                while c[0].find("strong"):
+                    c[0].find("strong").decompose()
                 while c[0].find(attrs={"class" : "end_photo_org"}):             # 이미지 있는 만큼
                     c[0].find(attrs={"class" : "end_photo_org"}).decompose()    # 본문 이미지에 있는 글자 없애기
 
@@ -249,7 +250,7 @@ class ContentCrawling:
 
         for i in range(len(title_list)):
             self.title.append(title_list[i].text)
-            self.content.append(re.findall('[^\.\n]*\.', content_list[i].text))
+            self.content.append(Preprocessing.clean(content_list[i].text))
             self.img.append(img_list[i])
             self.summary.append("")
 
@@ -285,6 +286,8 @@ class ContentCrawling:
                 else:
                     img_list.append("")
 
+                while c[0].find("strong"):
+                    c[0].find("strong").decompose()
                 while c[0].find(attrs={"class" : "end_photo_org"}):                 # 이미지 있는 만큼
                     c[0].find(attrs={"class" : "end_photo_org"}).decompose()        # 본문 이미지에 있는 글자 없애기
 
@@ -309,10 +312,9 @@ class ContentCrawling:
 
         for i in range(len(title_list)):
             self.title.append(title_list[i].text)
-            self.content.append(re.findall('[^\.\n]*\.', content_list[i].text))
+            self.content.append(Preprocessing.clean(content_list[i].text))
             self.img.append(img_list[i])
             self.summary.append("")
-
 
     def makeDataFrame(self, all_url, category):    # 수집한 데이터를 데이터프레임으로 변환
 
