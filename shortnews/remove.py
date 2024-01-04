@@ -16,9 +16,10 @@ class Remove():
             entertainment_url_df.drop(entertainment_url_df['entertainment_url'][entertainment_url_df['entertainment_url'].apply(lambda x : x in db_urls)].index, inplace=True)
             sports_url_df.drop(sports_url_df['sports_url'][sports_url_df['sports_url'].apply(lambda x : x in db_urls)].index, inplace=True)
 
-    # 3문장 이하 기사 삭제
+    # 3문장 이하 or 300자 이하 기사 삭제
     def shortNews(news_df):
-        news_df.drop(news_df[news_df['content'].apply(len) <= 3].index, inplace=True)
+        news_df.drop(news_df[news_df['content'].apply(lambda x : len(x.split("다."))) <= 4].index, inplace=True)
+        news_df.drop(news_df[news_df['content'].apply(len) <= 300].index, inplace=True)
 
     # 영어 기사 삭제
     def englishNews(news_df):   
@@ -29,7 +30,7 @@ class Remove():
 
     # 포토, 영상 기사 삭제
     def photoNews(news_df):
-        news_df.drop(news_df[news_df['title'].str.contains('사진|포토|영상')].index, inplace=True)
+        news_df.drop(news_df[news_df['title'].str.contains('사진|포토|영상|헤드라인')].index, inplace=True)
 
     # 유사 기사 삭제
     def similarNews(summary_news):

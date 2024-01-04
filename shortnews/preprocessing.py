@@ -1,4 +1,5 @@
 import re
+from collections import Counter
 from konlpy.tag import Okt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -7,11 +8,12 @@ import numpy as np
 # 전처리 클래스
 class Preprocessing:
 
-    # 필요없는 내용 삭제 함수
+    # 필요없는 내용 삭제
     def clean(text):    # .으로 마치는 문장들을 리스트로 받음
 
         text = re.sub('\([^)]*기자*\)', '', text)
         text = re.sub('\w{2,4}기자','',text)
+        text = re.sub('\w{2,4} 기자','',text)
         text = re.sub('\w{2,4} 온라인 기자','',text)
         text = re.sub('\[.{1,15}\]','',text)
         text = re.sub('\w+ 기상캐스터','',text)
@@ -32,6 +34,7 @@ class Preprocessing:
             
         return text
     
+    # 제목 전처리
     def cleanTitle(text):
         title = text
         title = re.sub('\[.+\]','',title)
@@ -41,7 +44,7 @@ class Preprocessing:
         title = re.sub('…',' ',title)
         title = re.sub('\·{3}',' ',title)
         
-        title = re.sub('[-=+#/:^$@*※&ㆍ!』\\‘’“”|\[\]\<\>`》\(\)■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',title)   # 특수문자 삭제
+        title = re.sub('[-=+#/^$@*※&ㆍ!』\\‘’“”|\[\]\<\>`》\(\)■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',title)   # 특수문자 삭제
 
         if not title:   # 제목이 다 사라졌으면 원래 제목으로
             title = text
@@ -49,7 +52,7 @@ class Preprocessing:
         return title.strip()
 
 
-    # 본문 명사 추출 함수
+    # 본문 명사 추출
     def getNouns(news_df):
         okt = Okt()
         nouns_list = []                               # 명사 리스트
@@ -59,7 +62,7 @@ class Preprocessing:
 
         news_df["nouns"] = nouns_list              # 데이터 프레임에 추가
 
-    # 명사 벡터화 함수
+    # 명사 벡터화 (군집화에 사용)
     def getVector(news_df):    # 카테고리 별로 벡터 생성
         category_names = ["정치", "경제", "사회", "생활/문화", "세계", "IT/과학", "연예", "스포츠"]
         vector_list = []
@@ -80,14 +83,14 @@ class Preprocessing:
 
         return vector_list
 
-    # 카테고리 번호 변환 함수 (정치 -> 100)
+    # 카테고리 번호 변환 (정치 -> 100)
     def convertCategory(news_df):    
         category = [("정치", "100"), ("경제", "101"), ("사회", "102"), ("생활/문화", "103"), ("세계", "104"), ("IT/과학", "105"), ("연예", "106"), ("스포츠", "107")]
 
         for name, num in category:
             news_df["category"][news_df["category"] == name] = num
 
-    # 요약 유사도 함수
+    # 요약 유사도
     def similarity(x, y):
 
         # 코사인 유사도
@@ -102,3 +105,24 @@ class Preprocessing:
         jaccard_similarity = intersection_cardinality / float(union_cardinality)
 
         return [round(cos_similarity[0][0] * 100, 2), round(jaccard_similarity * 100, 2)]
+    
+    # 키워드 추출
+    def getKeyword(summary_content):
+
+        okt = Okt()
+        nouns = []
+
+        for n in okt.nouns(summary_content):    # 2글자 이상 명사
+            if len(n) >= 2:
+                nouns.append(n)
+
+        vectorizer = TfidfVectorizer(min_df=2)  # min_df 특정 단어가 나타나는 '문서의 수'
+        vectorizer.fit(nouns)
+
+        top_keyword = Counter(vectorizer.vocabulary_).most_common(10)   # 상위 10개
+
+        keyword_list = []
+        for keyword in top_keyword:
+            keyword_list.append(keyword[0])
+
+        return ",".join(keyword_list)

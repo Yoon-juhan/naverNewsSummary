@@ -149,8 +149,9 @@ class ContentCrawling:
             try:
                 title_list.extend(soup.select("#title_area span"))              # 제목 추가
 
-                c = soup.find_all(attrs={"id" : "dic_area"})                    # 본문 가져오기
+                content = soup.find_all(attrs={"id" : "dic_area"})              # 본문 가져오기
 
+                # 요약봇
                 if summary_btn:
                     summary_content = soup.find(attrs={"class" : "_SUMMARY_CONTENT_BODY"})
                     try:
@@ -162,29 +163,9 @@ class ContentCrawling:
                 else:
                     self.summary.append("")
                 
+                self.getImg(soup, img_list)     # 이미지 추출
 
-                img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
-
-                if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
-                    img_src_list = []
-                    for img in img_tag:
-                        img_src_list.append(img['src'])
-                    img_list.append(",".join(img_src_list))
-                else:
-                    img_list.append("")
-
-                while c[0].find("strong"):
-                    c[0].find("strong").decompose()
-                while c[0].find(attrs={"class" : "end_photo_org"}):             # 이미지 있는 만큼
-                    c[0].find(attrs={"class" : "end_photo_org"}).decompose()    # 본문 이미지에 있는 글자 없애기
-
-                while c[0].find(attrs={"class" : "vod_player_wrap"}):           # 영상 있는 만큼
-                    c[0].find(attrs={"class" : "vod_player_wrap"}).decompose()  # 본문 영상에 있는 글자 없애기
-
-                if c[0].find(attrs={"class" : "artical-btm"}):                  # 하단에 제보하기 칸 있으면 삭제
-                    c[0].find(attrs={"class" : "artical-btm"}).decompose()
-
-                content_list.extend(c)                                          # 본문 추가
+                content_list.extend(self.removeTag(content))                         # 본문 추가
 
             except IndexError:
                 print("삭제된 기사")
@@ -215,33 +196,11 @@ class ContentCrawling:
             try:
                 title_list.extend(soup.select(".end_tit"))                      # 제목 추가
 
-                c = soup.find_all(attrs={"class" : "article_body"})             # 본문 가져오기
+                content = soup.find_all(attrs={"class" : "article_body"})             # 본문 가져오기
 
-                img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
+                self.getImg(soup, img_list)     # 이미지 추출
 
-                if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
-                    img_src_list = []
-                    for img in img_tag:
-                        img_src_list.append(img['src'])
-                    img_list.append(",".join(img_src_list))
-                else:
-                    img_list.append("")
-
-                while c[0].find("strong"):
-                    c[0].find("strong").decompose()
-                while c[0].find(attrs={"class" : "end_photo_org"}):             # 이미지 있는 만큼
-                    c[0].find(attrs={"class" : "end_photo_org"}).decompose()    # 본문 이미지에 있는 글자 없애기
-
-                if c[0].find(attrs={"class" : "caption"}):                      # 이미지 설명 없애기
-                    c[0].find(attrs={"class" : "caption"}).decompose()
-
-                while c[0].find(attrs={"id" : "video_area"}):                # 영상 있는 만큼
-                    c[0].find(attrs={"id" : "video_area"}).decompose()       # 본문 영상 없애기
-
-                while c[0].find(attrs={"name" : "iframe"}):
-                    c[0].find(attrs={"name" : "iframe"}).decompose()
-
-                content_list.extend(c)                                          # 본문 추가
+                content_list.extend(self.removeTag(content))                         # 본문 추가
 
             except IndexError:
                 print("삭제된 기사")
@@ -274,37 +233,12 @@ class ContentCrawling:
             try:
                 title_list.extend(soup.select(".news_headline .title"))             # 제목 추가 
 
-                c = soup.find_all(attrs={"class" : "news_end"})                     # 본문 가져오기
+                content = soup.find_all(attrs={"class" : "news_end"})                     # 본문 가져오기
 
-                img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
+                self.getImg(soup, img_list)     # 이미지 추출
 
-                if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
-                    img_src_list = []
-                    for img in img_tag:
-                        img_src_list.append(img['src'])
-                    img_list.append(",".join(img_src_list))
-                else:
-                    img_list.append("")
+                content_list.extend(self.removeTag(content))                         # 본문 추가
 
-                while c[0].find("strong"):
-                    c[0].find("strong").decompose()
-                while c[0].find(attrs={"class" : "end_photo_org"}):                 # 이미지 있는 만큼
-                    c[0].find(attrs={"class" : "end_photo_org"}).decompose()        # 본문 이미지에 있는 글자 없애기
-
-                while c[0].find(attrs={"class" : "image"}):
-                    c[0].find(attrs={"class" : "image"}).decompose()
-
-                while c[0].find(attrs={"class" : "vod_area"}):                      # 영상 있는 만큼
-                    c[0].find(attrs={"class" : "vod_area"}).decompose()             # 본문 영상 없애기
-
-                if c[0].find(attrs={"class" : "source"}): c[0].find(attrs={"class" : "source"}).decompose()
-                if c[0].find(attrs={"class" : "byline"}): c[0].find(attrs={"class" : "byline"}).decompose()
-                if c[0].find(attrs={"class" : "reporter_area"}): c[0].find(attrs={"class" : "reporter_area"}).decompose()
-                if c[0].find(attrs={"class" : "copyright"}): c[0].find(attrs={"class" : "copyright"}).decompose()
-                if c[0].find(attrs={"class" : "categorize"}): c[0].find(attrs={"class" : "categorize"}).decompose()
-                if c[0].find(attrs={"class" : "promotion"}): c[0].find(attrs={"class" : "promotion"}).decompose()
-
-                content_list.extend(c)                                        # 본문 추가
             except IndexError:
                 print("삭제된 기사")
         
@@ -316,13 +250,51 @@ class ContentCrawling:
             self.img.append(img_list[i])
             self.summary.append("")
 
+    # 데이터프레임 생성
     def makeDataFrame(self, all_url, category):    # 수집한 데이터를 데이터프레임으로 변환
 
-        news_df = pd.DataFrame({"category" : category,
-                                   "title" : self.title,
-                                   "content" : self.content,
-                                   "img" : self.img,
-                                   "url" : all_url,
-                                   "summary" : self.summary})
+        data = {"category" : pd.Series(category),
+                "title" : pd.Series(self.title),
+                "content" : pd.Series(self.content),
+                "img" : pd.Series(self.img),
+                "url" : pd.Series(all_url),
+                "summary" : pd.Series(self.summary)}
+
+        news_df = pd.DataFrame(data)
 
         return news_df
+    
+    # 이미지 추출
+    def getImg(self, soup, img_list):
+        img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
+
+        if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
+            img_src_list = []
+            for img in img_tag:
+                img_src_list.append(img['src'])
+            img_list.append(",".join(img_src_list))
+        else:
+            img_list.append("")
+
+    # 필요없는 태그 삭제
+    def removeTag(self, content):
+
+        while content[0].find("strong"): content[0].find("strong").decompose()
+        while content[0].find("b"): content[0].find("b").decompose()
+        while content[0].find(attrs={"class" : "end_photo_org"}): content[0].find(attrs={"class" : "end_photo_org"}).decompose()        # 본문 이미지에 있는 글자 없애기
+        while content[0].find(attrs={"class" : "vod_player_wrap"}): content[0].find(attrs={"class" : "vod_player_wrap"}).decompose()    # 본문 영상에 있는 글자 없애기
+        while content[0].find(attrs={"id" : "video_area"}): content[0].find(attrs={"id" : "video_area"}).decompose()                    # 본문 영상 없애기
+        while content[0].find(attrs={"name" : "iframe"}): content[0].find(attrs={"name" : "iframe"}).decompose()
+        while content[0].find(attrs={"class" : "image"}): content[0].find(attrs={"class" : "image"}).decompose()
+        while content[0].find(attrs={"class" : "vod_area"}): content[0].find(attrs={"class" : "vod_area"}).decompose()                  # 본문 영상 없애기
+
+        if content[0].find(attrs={"class" : "artical-btm"}): content[0].find(attrs={"class" : "artical-btm"}).decompose()               # 하단에 제보하기 칸 있으면 삭제
+        if content[0].find(attrs={"class" : "caption"}): content[0].find(attrs={"class" : "caption"}).decompose()                       # 이미지 설명 없애기
+        if content[0].find(attrs={"class" : "source"}): content[0].find(attrs={"class" : "source"}).decompose()
+        if content[0].find(attrs={"class" : "byline"}): content[0].find(attrs={"class" : "byline"}).decompose()
+        if content[0].find(attrs={"class" : "reporter_area"}): content[0].find(attrs={"class" : "reporter_area"}).decompose()
+        if content[0].find(attrs={"class" : "copyright"}): content[0].find(attrs={"class" : "copyright"}).decompose()
+        if content[0].find(attrs={"class" : "categorize"}): content[0].find(attrs={"class" : "categorize"}).decompose()
+        if content[0].find(attrs={"class" : "promotion"}): content[0].find(attrs={"class" : "promotion"}).decompose()
+
+        return content

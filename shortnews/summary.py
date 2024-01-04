@@ -2,7 +2,6 @@ from gensim.summarization.summarizer import summarize
 from preprocessing import Preprocessing
 import pandas as pd
 import re
-from konlpy.tag import Okt
 # from summa.summarizer import summarize
 
 # 요약 클래스
@@ -47,29 +46,23 @@ class Summary:
                     summary_content = summarize(content, word_count=i) # 단어 수
                     
                     if summary_content:     # 요약 됐으면 끝
+                        summary_content = re.sub('다\.', '다.\n', summary_content)
+                        summary_content = re.sub('요\.', '요.\n', summary_content)
+
+                        # 키워드
+                        keyword = Preprocessing.getKeyword(summary_content)
+
                         break
                 else:
-                    # summary_content = "요약 안된 기사 내용 : " + temp_df["content"].iloc[0]    # 단어수 130까지 해도 요약 안되면 본문 그대로
                     summary_content = "XXXXXXXXXX else XXXXXXXXXX"
 
-            except:
-                # summary_content =  "요약 안된 기사 내용 : " + temp_df["content"].iloc[0]
+            except Exception as e:
+                print(f"에러 내용 : {e}")
                 summary_content = "XXXXXXXXXX except XXXXXXXXXX"
             finally:
                 
-                summary_content = re.sub('다\.', '다.\n', summary_content)
-                summary_content = re.sub('요\.', '요.\n', summary_content)
-
                 # 유사도
                 cos_similarity, jaccard_similarity = Preprocessing.similarity(summary_content, naver_summary)
-
-                # 키워드
-                okt = Okt()
-                nouns = []
-
-                for n in okt.nouns(summary_content):
-                    if len(n) >= 2:
-                        nouns.append(n)
 
                 # 데이터프레임 생성
                 summary_news = summary_news.append({
@@ -80,7 +73,7 @@ class Summary:
                     "similarity" : f"(코사인 유사도 : {cos_similarity}%) (자카드 유사도 : {jaccard_similarity}%)",
                     "img" : img,
                     "url" : url,
-                    "keyword" : ",".join(nouns)
+                    "keyword" : keyword
                 }, ignore_index=True)
 
         return summary_news
