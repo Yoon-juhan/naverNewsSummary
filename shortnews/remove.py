@@ -30,7 +30,7 @@ class Remove():
 
     # 포토, 영상 기사 삭제
     def photoNews(news_df):
-        news_df.drop(news_df[news_df['title'].str.contains('사진|포토|영상|헤드라인')].index, inplace=True)
+        news_df.drop(news_df[news_df['title'].str.contains('사진|포토|영상|움짤|헤드라인')].index, inplace=True)
 
     # 유사 기사 삭제
     def similarNews(summary_news):
@@ -39,6 +39,11 @@ class Remove():
 
         for i in range(len(summary_news)):
             now_news = summary_news['content'].iloc[i]
+
+            if len(now_news) >= 1000:   # 1000글자 이상이면 drop
+                index.append(i)
+                continue
+            
             tmp = db_df[db_df['CATE_ID'] == summary_news['category'].iloc[i]]
             
             for j in range(len(tmp)):

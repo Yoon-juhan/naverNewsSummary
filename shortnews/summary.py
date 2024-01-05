@@ -41,7 +41,8 @@ class Summary:
             # 본문 요약
             try:
                 summary_content = ""
-
+                keyword = ""
+                
                 for i in range(60, 130, 10):
                     summary_content = summarize(content, word_count=i) # 단어 수
                     

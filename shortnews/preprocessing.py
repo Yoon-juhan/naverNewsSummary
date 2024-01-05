@@ -1,6 +1,6 @@
 import re
 from collections import Counter
-from konlpy.tag import Okt
+from konlpy.tag import Okt, Hannanum
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
@@ -109,14 +109,32 @@ class Preprocessing:
     # 키워드 추출
     def getKeyword(summary_content):
 
-        okt = Okt()
+        # okt = Okt()
+        # nouns = []
+        # stop_word = ["지난해", "지난달", "대부분"]
+
+        # for n in okt.nouns(summary_content):    # 3글자 이상 명사
+        #     if len(n) >= 3 and n not in stop_word:
+        #         nouns.append(n)
+
+        # vectorizer = TfidfVectorizer(min_df=1)  # min_df 특정 단어가 나타나는 '문서의 수'
+        # vectorizer.fit(nouns)
+
+        # top_keyword = Counter(vectorizer.vocabulary_).most_common(10)   # 상위 10개
+
+        # keyword_list = []
+        # for keyword in top_keyword:
+        #     keyword_list.append(keyword[0])
+
+        hannanum = Hannanum()
+        stop_word = ["지난해", "지난달", "대부분"]
         nouns = []
 
-        for n in okt.nouns(summary_content):    # 2글자 이상 명사
-            if len(n) >= 2:
-                nouns.append(n)
+        for keyword, tag in hannanum.pos(summary_content):    # 3글자 이상 명사
+            if tag in ['N'] and len(keyword) >= 3 and keyword not in stop_word:
+                nouns.append(keyword)
 
-        vectorizer = TfidfVectorizer(min_df=2)  # min_df 특정 단어가 나타나는 '문서의 수'
+        vectorizer = TfidfVectorizer(min_df=1)  # min_df 특정 단어가 나타나는 '문서의 수'
         vectorizer.fit(nouns)
 
         top_keyword = Counter(vectorizer.vocabulary_).most_common(10)   # 상위 10개

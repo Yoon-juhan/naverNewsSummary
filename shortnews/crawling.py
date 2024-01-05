@@ -271,7 +271,8 @@ class ContentCrawling:
         if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
             img_src_list = []
             for img in img_tag:
-                img_src_list.append(img['src'])
+                if len(img_src_list) <= 10:                             # 최대 이미지 10개
+                    img_src_list.append(img['src'])
             img_list.append(",".join(img_src_list))
         else:
             img_list.append("")
