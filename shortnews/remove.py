@@ -37,21 +37,19 @@ class Remove():
         index = []
         db_df = selectToDay()
 
-        for i in range(len(summary_news)):
-            now_news = summary_news['content'].iloc[i]
+        if not db_df.empty:
+            for i in range(len(summary_news)):
+                now_news = summary_news['content'].iloc[i]
 
-            if len(now_news) >= 1000:   # 1000글자 이상이면 drop
-                index.append(i)
-                continue
-            
-            tmp = db_df[db_df['CATE_ID'] == summary_news['category'].iloc[i]]
-            
-            for j in range(len(tmp)):
-                cos_similarity, jaccard_similarity = Preprocessing.similarity(now_news, tmp['CONTENT'].iloc[j])
-                if jaccard_similarity >= 70:    # 자카드 유사도 70% 이상이면 drop
+                if len(now_news) >= 1000:   # 1000글자 이상이면 drop
                     index.append(i)
-        
-        summary_news.drop(index, inplace=True)
-
-
+                    continue
                 
+                tmp = db_df[db_df['CATE_ID'] == summary_news['category'].iloc[i]]
+                
+                for j in range(len(tmp)):
+                    cos_similarity, jaccard_similarity = Preprocessing.similarity(now_news, tmp['CONTENT'].iloc[j])
+                    if jaccard_similarity >= 70:    # 자카드 유사도 70% 이상이면 drop
+                        index.append(i)
+            
+            summary_news.drop(index, inplace=True)

@@ -1,8 +1,8 @@
-from gensim.summarization.summarizer import summarize
+# from gensim.summarization.summarizer import summarize
 from preprocessing import Preprocessing
 import pandas as pd
 import re
-# from summa.summarizer import summarize
+from summa.summarizer import summarize
 
 # 요약 클래스
 class Summary:
@@ -44,7 +44,9 @@ class Summary:
                 keyword = ""
                 
                 for i in range(60, 130, 10):
-                    summary_content = summarize(content, word_count=i) # 단어 수
+                    # summary_content = summarize(content, word_count=i) # 단어 수
+                    summary_content = summarize(content, words=i) # 단어 수
+
                     
                     if summary_content:     # 요약 됐으면 끝
                         summary_content = re.sub('다\.', '다.\n', summary_content)
