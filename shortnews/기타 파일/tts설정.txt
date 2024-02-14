@@ -1,3 +1,6 @@
+모듈 설치
+pip install --upgrade google-cloud-texttospeech
+
 구글 cli 설치
 https://cloud.google.com/sdk/docs/quickstart-windows
 

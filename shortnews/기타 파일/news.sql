@@ -22,3 +22,6 @@ cycle;
 
 select * from news
 order by to_number(news_id);
+
+select * from news
+where news_id like '20240115%';
