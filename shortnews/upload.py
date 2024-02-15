@@ -17,19 +17,6 @@ def s3_connection():
         print("연결 성공") 
         return s3
 
-# 워드 클라우드 업로드
-def upload_img():
-    s3 = s3_connection()
-
-    now = datetime.datetime.now()
-    now = str(now.year) + str(now.month).zfill(2) + str(now.day).zfill(2)
-
-    try:
-        for i in range(100, 109):
-            s3.upload_file(f"word_cloud/{now}_{i}.jpg", "snewsimgs", f"{now}_{i}.jpg") # "{로컬 파일 이름}, {버킷 이름}, {실제로 저장될 이름}"
-        print("이미지 업로드 성공")
-    except Exception as e:
-        print("이미지 업로드 실패", e)
 
 # TTS mp3 업로드
 def upload_mp3():

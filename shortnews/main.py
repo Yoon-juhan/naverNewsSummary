@@ -3,14 +3,12 @@
 import schedule
 import time
 
-# 만든 기능 임포트
 from crawling import startCrawling
 from clustering import startClustering
 from summary import startSummary
 from remove import startRemove
 from database import insert
-from word_cloud import wordCloud
-from upload import upload_img, upload_mp3
+from upload import upload_mp3
 from tts import tts
 
 def start():
