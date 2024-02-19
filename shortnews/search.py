@@ -6,7 +6,6 @@ import pandas as pd
 import re
 import time
 from datetime import datetime, timedelta
-from tqdm.notebook import tqdm
 from summa.summarizer import summarize
 import threading
 
@@ -15,22 +14,27 @@ options.add_argument('--headless')
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 options.add_argument('--log-level=3')  # 로그 레벨을 "INFO" 이상의 레벨로 설정
-browser = webdriver.Chrome(options=options)
+
 
 def getUrl(query):
+    browser = webdriver.Chrome(options=options)
+
     a_tag_list = []
     urls = []
     url = f'https://search.naver.com/search.naver?where=news&ie=utf8&sm=nws_hty&query={query}'
     browser.get(url)
     browser.find_element(By.TAG_NAME, 'body').send_keys(Keys.END)
     time.sleep(1)
+
     soup = BeautifulSoup(browser.page_source, "html.parser")
     a_tag_list.extend(soup.find_all(attrs={"class" : "info"}, string="네이버뉴스"))
-    # print(a_tag_list)
+
     for a in a_tag_list:
         urls.append(a["href"])
+    
+    browser.quit()
+
     return urls
-# 제목, 본문, 날짜, 카테고리, 이미지, url
 
 # 기사 본문 크롤링
 class SearchContentCrawling:
@@ -133,7 +137,7 @@ class SearchContentCrawling:
                 self.url.append(url)
 
     # 데이터프레임 생성
-    def makeDataFrame(self):    # 수집한 데이터를 데이터프레임으로 변환
+    def makeDataFrame(self):
 
         data = {"category" : pd.Series(self.category),
                 "date" : pd.Series(self.date),
@@ -152,19 +156,19 @@ class SearchContentCrawling:
     
     # 이미지 추출
     def getImg(self, soup, img_list):
-        img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
+        img_tag = soup.select(".end_photo_org img")
 
-        if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
+        if img_tag:
             img_src_list = []
             for img in img_tag:
-                if len(img_src_list) <= 10:                             # 최대 이미지 10개
+                if len(img_src_list) <= 10:
                     if '.gif' not in img['src']:
                         img_src_list.append(img['src'])
             img_list.append(",".join(img_src_list))
         else:
             img_list.append("")
 
-        # 필요없는 태그 삭제
+    # 필요없는 태그 삭제
     def removeTag(self, content):
 
         while content.find("strong"): content.find("strong").decompose()
@@ -245,9 +249,6 @@ async def query(query):
     urls = list(set(urls))
     crawler = SearchContentCrawling()
 
-    # urls1 = urls[:len(urls) // 2]
-    # urls2 = urls[len(urls) // 2:]
-
     urls1 = urls[:len(urls) // 3]
     urls2 = urls[len(urls) // 3:len(urls) // 3 + 3]
     urls3 = urls[len(urls) // 3 + 3:]
@@ -263,6 +264,8 @@ async def query(query):
                 crawler.getEntertainmentContent(url, browser)
             else:
                 crawler.getSportsContent(url, browser)
+        
+        browser.quit()
     
     # 여기서 스레드로 분리
     content_thread1 = threading.Thread(target=getContent, args=(urls1,))
@@ -274,7 +277,6 @@ async def query(query):
     content_thread1.join()
     content_thread2.join()
     content_thread3.join()
-
 
     # 데이터프레임 생성
     news_df = crawler.makeDataFrame()

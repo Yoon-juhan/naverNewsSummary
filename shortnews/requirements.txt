@@ -2,6 +2,8 @@ annotated-types==0.6.0
 anyio==4.2.0
 attrs==23.1.0
 backcall==0.2.0
+bareun-apis==0.12.0
+bareunpy==1.6.3
 beautifulsoup4==4.12.2
 boto3==1.33.13
 botocore==1.33.13
@@ -63,7 +65,7 @@ pickleshare==0.7.5
 Pillow==9.5.0
 prompt-toolkit==3.0.41
 proto-plus==1.23.0
-protobuf==4.24.4
+protobuf==3.20.3
 psutil==5.9.6
 pyasn1==0.5.1
 pyasn1-modules==0.3.0

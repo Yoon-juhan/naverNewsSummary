@@ -7,34 +7,29 @@ import re
 import time
 from datetime import datetime, timedelta
 from summa.summarizer import summarize
-import threading
 
 options = webdriver.ChromeOptions()
 options.add_argument('--headless')
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
 options.add_argument('--log-level=3')  # 로그 레벨을 "INFO" 이상의 레벨로 설정
+browser = webdriver.Chrome(options=options)
 
 
 def getUrl(query):
-    browser = webdriver.Chrome(options=options)
-
     a_tag_list = []
     urls = []
     url = f'https://search.naver.com/search.naver?where=news&ie=utf8&sm=nws_hty&query={query}'
     browser.get(url)
     browser.find_element(By.TAG_NAME, 'body').send_keys(Keys.END)
     time.sleep(1)
-
     soup = BeautifulSoup(browser.page_source, "html.parser")
     a_tag_list.extend(soup.find_all(attrs={"class" : "info"}, string="네이버뉴스"))
-
+    # print(a_tag_list)
     for a in a_tag_list:
         urls.append(a["href"])
-    
-    browser.quit()
-
     return urls
+# 제목, 본문, 날짜, 카테고리, 이미지, url
 
 # 기사 본문 크롤링
 class SearchContentCrawling:
@@ -45,13 +40,10 @@ class SearchContentCrawling:
         self.content = []
         self.img = []
         self.date = []
-        self.url = []
-        self.lock = threading.Lock()
 
-    def getContent(self, url, category_num, browser):  # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
-
+    def getContent(self, url, category_num):  # 정치, 경제, 사회, 생활/문화, 세계, IT/과학
         img_list = []
-        
+
         flag = False
         browser.get(url)
         time.sleep(0.5)
@@ -65,21 +57,17 @@ class SearchContentCrawling:
             flag = True
 
         except IndexError:
-            print("삭제된 기사 :", url)
+            print("삭제된 기사")
 
-        with self.lock:
-            if flag:
-                self.category.append(self.category_names[category_num-100])
-                self.title.append(cleanTitle(title.text))
-                self.content.append(cleanContent(self.removeTag(content).text))
-                self.img.append(img_list)
-                self.date.append(dateFormat(date.text))
-                self.url.append(url)
+        if flag:
+            self.category.append(self.category_names[category_num-100])
+            self.title.append(cleanTitle(title.text))
+            self.content.append(cleanContent(self.removeTag(content).text))
+            self.img.append(img_list)
+            self.date.append(dateFormat(date.text))
 
-            
 
-    def getEntertainmentContent(self, url, browser):    # 연예
-
+    def getEntertainmentContent(self, url):    # 연예
         img_list = []
 
         flag = False
@@ -95,20 +83,17 @@ class SearchContentCrawling:
             flag = True
 
         except IndexError:
-            print("삭제된 기사 :", url)
+            print("삭제된 기사")
+
+        if flag:
+            self.category.append("연예")
+            self.title.append(cleanTitle(title.text))
+            self.content.append(cleanContent(self.removeTag(content).text))
+            self.img.append(img_list)
+            self.date.append(dateFormat(date.text))
 
 
-        with self.lock:
-            if flag:
-                self.category.append("연예")
-                self.title.append(cleanTitle(title.text))
-                self.content.append(cleanContent(self.removeTag(content).text))
-                self.img.append(img_list)
-                self.date.append(dateFormat(date.text))
-                self.url.append(url)
-
-    def getSportsContent(self, url, browser):   # 스포츠
-
+    def getSportsContent(self, url):   # 스포츠
         img_list = []
 
         flag = False
@@ -124,51 +109,43 @@ class SearchContentCrawling:
             flag = True
 
         except IndexError:
-            print("삭제된 기사 :", url)
+            print("삭제된 기사")
 
-                
-        with self.lock:
-            if flag:
-                self.category.append("스포츠")
-                self.title.append(cleanTitle(title.text))
-                self.content.append(cleanContent(self.removeTag(content).text))
-                self.img.append(img_list)
-                self.date.append(dateFormat(date.text))
-                self.url.append(url)
+        if flag:
+            self.category.append("스포츠")
+            self.title.append(cleanTitle(title.text))
+            self.content.append(cleanContent(self.removeTag(content).text))
+            self.img.append(img_list)
+            self.date.append(dateFormat(date.text))
 
     # 데이터프레임 생성
-    def makeDataFrame(self):
+    def makeDataFrame(self, urls):    # 수집한 데이터를 데이터프레임으로 변환
 
         data = {"category" : pd.Series(self.category),
                 "date" : pd.Series(self.date),
                 "title" : pd.Series(self.title),
                 "content" : pd.Series(self.content),
                 "img" : pd.Series(self.img),
-                "url" : pd.Series(self.url)}
-        
+                "url" : pd.Series(urls)}
         news_df = pd.DataFrame(data)
 
-        # news_df.drop(news_df[news_df['content'].isna()].index, inplace=True)
-        # news_df.drop(news_df[news_df['title'].str.contains('사진|포토|영상|움짤|헤드라인|라이브|정치쇼')].index, inplace=True)
-        # news_df.drop(news_df[news_df['content'].str.contains('방송 :|방송:|진행 :|진행:|출연 :|출연:|앵커|[앵커]')].index, inplace=True)
-
         return news_df
-    
+
     # 이미지 추출
     def getImg(self, soup, img_list):
-        img_tag = soup.select(".end_photo_org img")
+        img_tag = soup.select(".end_photo_org img")                     # 이미지 가져오기
 
-        if img_tag:
+        if img_tag:                                                     # 이미지 있으면 이미지 주소만 추출해서 리스트로 만든다.
             img_src_list = []
             for img in img_tag:
-                if len(img_src_list) <= 10:
+                if len(img_src_list) <= 10:                             # 최대 이미지 10개
                     if '.gif' not in img['src']:
                         img_src_list.append(img['src'])
             img_list.append(",".join(img_src_list))
         else:
             img_list.append("")
 
-    # 필요없는 태그 삭제
+        # 필요없는 태그 삭제
     def removeTag(self, content):
 
         while content.find("strong"): content.find("strong").decompose()
@@ -208,7 +185,7 @@ def cleanContent(text):
     text = re.sub('\t\xa0','', text)
     text = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',text)
     text = re.sub('[=+#/^$@*※&ㆍ!』\\|\[\]\<\>`…》■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',text)
-    
+
     return text
 
 # 제목 전처리
@@ -249,39 +226,19 @@ async def query(query):
     urls = list(set(urls))
     crawler = SearchContentCrawling()
 
-    urls1 = urls[:len(urls) // 3]
-    urls2 = urls[len(urls) // 3:len(urls) // 3 + 3]
-    urls3 = urls[len(urls) // 3 + 3:]
+    for url in urls:
+        catgory = int(url[-3:])
+        if catgory in [100, 101, 102, 103, 104, 105]:
+            crawler.getContent(url, catgory)
+        elif catgory == 106:
+            crawler.getEntertainmentContent(url)
+        else:
+            crawler.getSportsContent(url)
 
-    def getContent(urls):
-        browser = webdriver.Chrome(options=options)
-
-        for url in urls:
-            catgory = int(url[-3:])
-            if catgory in [100, 101, 102, 103, 104, 105]:
-                crawler.getContent(url, catgory, browser)
-            elif catgory == 106:
-                crawler.getEntertainmentContent(url, browser)
-            else:
-                crawler.getSportsContent(url, browser)
-        
-        browser.quit()
-    
-    # 여기서 스레드로 분리
-    content_thread1 = threading.Thread(target=getContent, args=(urls1,))
-    content_thread2 = threading.Thread(target=getContent, args=(urls2,))
-    content_thread3 = threading.Thread(target=getContent, args=(urls3,))
-    content_thread1.start()
-    content_thread2.start()
-    content_thread3.start()
-    content_thread1.join()
-    content_thread2.join()
-    content_thread3.join()
-
-    # 데이터프레임 생성
-    news_df = crawler.makeDataFrame()
+    news_df = crawler.makeDataFrame(urls)
     news_df["content"] = news_df["content"].apply(lambda x : summarize(x, words=60))
-
     dict = news_df.to_dict(orient='records')
 
+    browser.quit()
+    
     return dict

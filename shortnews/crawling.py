@@ -10,7 +10,7 @@ from pytz import timezone
 from tqdm.notebook import tqdm
 import threading
 
-# 전처리 클래스
+# 내 파일 import
 from preprocessing import cleanContent
 from remove import duplication
 
@@ -22,7 +22,7 @@ options.add_argument('--log-level=3')  # 로그 레벨을 "INFO" 이상의 레�
 browser = webdriver.Chrome(options=options)
 # ------------------------------------------- 준비 ------------------------------------------- #
 
-n = [0, 5, 7] # 6, 5, 7
+n = [2, 1] # 2~5, 1~7
 
 # 기사 링크 크롤링
 class UrlCrawling:
@@ -61,6 +61,8 @@ class UrlCrawling:
         with self.lock:
             self.url_df_list[category_num-100] = url_df
 
+        browser.quit()
+
 
     # 연예
     def getEntertainmentUrl(self):
@@ -71,7 +73,7 @@ class UrlCrawling:
         today = datetime.date.today()
         browser = webdriver.Chrome(options=options)
 
-        for page in range(1, n[1]):  # 1, 5
+        for page in range(1, n[0]):  # (1, 5)
             url = f'https://entertain.naver.com/now#sid=106&date={today}&page={page}'
             browser.get(url)
 
@@ -91,6 +93,8 @@ class UrlCrawling:
 
         with self.lock:
             self.url_df_list[6] = url_df
+        
+        browser.quit()
 
 
     # 스포츠
@@ -103,7 +107,7 @@ class UrlCrawling:
         browser = webdriver.Chrome(options=options)
         category = ["kfootball", "wfootball", "kbaseball", "wbaseball", "basketball", "volleyball", "golf"]
 
-        for i in range(n[2]):  # 7
+        for i in range(n[1]):  # 7
             url = f'https://sports.news.naver.com/{category[i]}/news/index?isphoto=N&date={today}&page=1'
             browser.get(url)
 
@@ -123,6 +127,7 @@ class UrlCrawling:
         with self.lock:
             self.url_df_list[7] = url_df
 
+        browser.quit()
 
 # 기사 본문 크롤링
 class ContentCrawling:
@@ -170,6 +175,8 @@ class ContentCrawling:
                     print(content_list[i])
                     print(content[category_num])
 
+        browser.quit()
+
 
     def getEntertainmentContent(self, url_list):    # 연예
         title_list = []
@@ -203,6 +210,7 @@ class ContentCrawling:
                 self.content[6].append(cleanContent(content_list[i].text))
                 self.img[6].append(img_list[i])
 
+        browser.quit()
 
     def getSportsContent(self, url_list):   # 스포츠
         title_list = []
@@ -236,6 +244,7 @@ class ContentCrawling:
                 self.content[7].append(cleanContent(content_list[i].text))
                 self.img[7].append(img_list[i])
 
+        browser.quit()
 
     # 데이터프레임 생성
     def makeDataFrame(self, all_url, category):    # 수집한 데이터를 데이터프레임으로 변환

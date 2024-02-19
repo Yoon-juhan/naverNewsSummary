@@ -12,6 +12,7 @@ def getVector(news_df):    # 카테고리 별로 벡터 생성
     for i in range(8):
         try:
             text = [" ".join(noun) for noun in news_df['nouns'][news_df['category'] == category_names[i]]]    # 명사 열을 하나의 리스트에 담는다.
+            print(text)
             
             tfidf_vectorizer = TfidfVectorizer(min_df = 2, ngram_range=(1, 5))
             tfidf_vectorizer.fit(text)
@@ -50,7 +51,8 @@ def getClusteredNews(news_df): # 카테고리 별로 군집의 개수를 센다.
         cluster_counts_df = pd.concat([cluster_counts_df, tmp])
 
     # 상위 군집 10개씩만 추출
-    cluster_counts_df = cluster_counts_df[cluster_counts_df.index < 10]
+    # cluster_counts_df = cluster_counts_df[cluster_counts_df.index < 10]
+    cluster_counts_df = cluster_counts_df[cluster_counts_df.index < 20]
     
     return cluster_counts_df
     

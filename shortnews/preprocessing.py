@@ -3,6 +3,8 @@ from collections import Counter
 from konlpy.tag import Okt, Komoran
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
+from bareunpy import Tagger
+
 
 # 본문 전처리
 def cleanContent(text):
@@ -63,23 +65,37 @@ def convertCategory(news_df):
 
 # 키워드 추출
 def getKeyword(summary_content):
+    tagger = Tagger(apikey='koba-MBTOTZI-CRPEEBI-SRDUSVI-FPSMISA')
+    result = []
+    res = tagger.tags([summary_content])
+    pa = res.pos()
+    for word, type in pa:
+        if type == 'NNP' and len(word) >= 2:
+            result.append(word)
 
-    with open('korean_stopwords.txt', 'r', encoding='utf-8') as f:
-        list_file = f.read()
+    return " ".join(result)
 
-    stopwords = list_file.split("\n")
 
-    komoran = Komoran()
+# 키워드 추출
+# def getKeyword(summary_content):
 
-    keyword = []
-    nouns = komoran.nouns(summary_content)
-    p = komoran.pos(summary_content)
+#     with open('korean_stopwords.txt', 'r', encoding='utf-8') as f:
+#         list_file = f.read()
 
-    for pos in p:
-      if pos[1] in ['SL']:
-        nouns.append(pos[0])
-    for n in nouns:
-      if len(n)>1 and n not in stopwords:
-        keyword.append(n)
+#     stopwords = list_file.split("\n")
 
-    return ",".join(keyword)
+#     komoran = Komoran()
+
+#     keyword = []
+#     nouns = komoran.nouns(summary_content)
+#     p = komoran.pos(summary_content)
+
+#     for pos in p:
+#       if pos[1] in ['SL']:
+#         nouns.append(pos[0])
+#     for n in nouns:
+#       if len(n)>1 and n not in stopwords:
+#         keyword.append(n)
+
+#     return " ".join(keyword)
+
