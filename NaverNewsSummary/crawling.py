@@ -160,7 +160,7 @@ class ContentCrawling:
             for i in range(len(title_list)):
                 try:
                     self.title[category_num].append(title_list[i].text)
-                    self.content[category_num].append(cleanContent(content_list[i].text))
+                    self.content[category_num].append(cleanContent(content_list[i].text).strip())
                     self.img[category_num].append(img_list[i])
                 except IndexError:
                     print(i, category_num)
@@ -199,7 +199,7 @@ class ContentCrawling:
         with self.lock:
             for i in range(len(title_list)):
                 self.title[6].append(title_list[i].text)
-                self.content[6].append(cleanContent(content_list[i].text))
+                self.content[6].append(cleanContent(content_list[i].text).strip())
                 self.img[6].append(img_list[i])
 
         browser.quit()
@@ -233,7 +233,7 @@ class ContentCrawling:
         with self.lock:
             for i in range(len(title_list)):
                 self.title[7].append(title_list[i].text)
-                self.content[7].append(cleanContent(content_list[i].text))
+                self.content[7].append(cleanContent(content_list[i].text).strip())
                 self.img[7].append(img_list[i])
 
         browser.quit()
@@ -315,10 +315,12 @@ def cleanContent(text):
     text = re.sub('\S+@[a-z.]+','',text)
     text = re.sub('[“”]','"',text)
     text = re.sub('[‘’]','\'',text)
+    text = re.sub('\s{2,}',' ',text)
     text = re.sub('다\.(?=(?:[^"]*"[^"]*")*[^"]*$)', '다.\n', text)
     text = re.sub('\t\xa0','', text)
     text = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',text)
     text = re.sub('[=+#/^$@*※&ㆍ!』\\|\[\]\<\>`…》■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',text)
+    
         
     return text
     

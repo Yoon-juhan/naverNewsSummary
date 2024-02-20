@@ -19,12 +19,9 @@ def start():
 
 start()
 
-# # n분 마다 호출  
-# schedule.every(10).minutes.do(start)
+# n시간마다 호출  
+schedule.every(1).hour.do(start)
 
-# # n시간마다 호출  
-# schedule.every(1).hour.do(start)
-
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
+while True:
+    schedule.run_pending()
+    time.sleep(1)
