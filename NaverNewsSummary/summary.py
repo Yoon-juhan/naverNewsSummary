@@ -2,8 +2,10 @@ import pandas as pd
 import re
 from tqdm.notebook import tqdm
 from summa.summarizer import summarize
-from preprocessing import cleanTitle, getKeyword, convertCategory
-from similarity import cosine, jaccard
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from bareunpy import Tagger
+from bareunpy_api_key import key
 
 def summary(news_df, cluster_counts_df):
     summary_news = pd.DataFrame()
@@ -54,13 +56,13 @@ def summary(news_df, cluster_counts_df):
 def multiDocumentSummarization(content):
 
     # 군집된 기사들을 하나의 문서로 합치고 문장 단위로 나눈다.
-    sentence_list = "".join(content)
+    sentence_list = "\n".join(content)
     sentence_list = sentence_list.split("다.\n")
     if sentence_list[-1] == "":
         sentence_list.pop()
 
     # split 할 때 사라진 '다.' 를 다시 붙여준다.
-    sentence_list = [sentence + "다." for sentence in sentence_list if sentence]
+    sentence_list = [sentence + "다." for sentence in sentence_list if sentence[-2:] != "다."]
 
     # 문장간 유사도 측정
     idx = []
@@ -69,7 +71,7 @@ def multiDocumentSummarization(content):
         for j in range(i+1, len(sentence_list)):
             cosine_similarity = cosine(sentence_list[i], sentence_list[j])
             jaccard_similarity = jaccard(sentence_list[i], sentence_list[j])
-            if cosine_similarity > n or jaccard_similarity > n:
+            if cosine_similarity >= n or jaccard_similarity >= n:
                 idx.append(j)
     
     content = []
@@ -84,8 +86,61 @@ def multiDocumentSummarization(content):
     return summary_content
 
 
-def startSummary(news_df, cluster_counts_df):
-    summary_news = summary(news_df, cluster_counts_df)  # 기사 요약
-    convertCategory(summary_news)                       # 카테고리 이름 변환
+# 코사인 유사도
+def cosine(x, y):
+    data = (x, y)
+    try:
+        tfidf_vectorizer = TfidfVectorizer()
+        tfidf_matrix = tfidf_vectorizer.fit_transform(data)
+        similarity = cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])
+    except:
+        return 0
+    return round(similarity[0][0] * 100, 2)
 
+
+# 자카드 유사도
+def jaccard(x, y):
+    intersection_cardinality = len(set.intersection(*[set(x), set(y)]))
+    union_cardinality = len(set.union(*[set(x), set(y)]))
+    similarity = intersection_cardinality / float(union_cardinality)
+
+    return round(similarity * 100, 2)
+
+
+# 제목 전처리
+def cleanTitle(text):
+    title = text
+
+    title = re.sub('\([^)]+\)', '', title)
+    title = re.sub('\[[^\]]+\]', '',title)
+    title = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',title)
+    title = re.sub('[“”]','"',title)
+    title = re.sub('[‘’]','\'',title)
+    title = re.sub('\.{2,3}','...',title)
+    title = re.sub('…','...',title)
+    title = re.sub('\·{3}','...',title)
+    title = re.sub('[=+#/^$@*※&ㆍ!』\\|\<\>`》■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',title)
+
+    if not title:   # 제목이 다 사라졌으면 원래 제목으로
+        title = text
+
+    return title.strip()
+
+
+# 키워드 추출
+def getKeyword(summary_content):
+    tagger = Tagger(apikey=key)
+    result = []
+    res = tagger.tags([summary_content])
+    pa = res.pos()
+    for word, type in pa:
+        if type == 'NNP' and len(word) >= 2:
+            result.append(word)
+
+    return " ".join(result)
+
+
+def startSummary(news_df, cluster_counts_df):
+    summary_news = summary(news_df, cluster_counts_df)
+    
     return summary_news

@@ -317,7 +317,7 @@ def cleanContent(text):
     text = re.sub('[‘’]','\'',text)
     text = re.sub('\s{2,}',' ',text)
     text = re.sub('다\.(?=(?:[^"]*"[^"]*")*[^"]*$)', '다.\n', text)
-    text = re.sub('\t\xa0','', text)
+    text = re.sub('[\t\xa0]','', text)
     text = re.sub('[ㄱ-ㅎㅏ-ㅣ]+','',text)
     text = re.sub('[=+#/^$@*※&ㆍ!』\\|\[\]\<\>`…》■□ㅁ◆◇▶◀▷◁△▽▲▼○●━]','',text)
     
